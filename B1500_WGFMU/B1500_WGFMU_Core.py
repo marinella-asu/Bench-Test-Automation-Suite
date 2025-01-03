@@ -8,26 +8,40 @@ import time
 import matplotlib.pyplot as plt
 
 
-class B1500_SMU:
-    def __init__( self , gpib_address , smu_channel_list , timeout=200000 , DEBUG_PRINT=False ):
+class B1500_WGFMU:
+    def __init__( self , b1500_gpib_address , wgfmu_channel_list , wgfmu_dll_path = "wgfmu_x64\wgfmu.dll" ):
+        #WGFMU Library Locations
+        #wgfmu_dll_path = "wgfmu_x64\wgfmu.dll"
+        #wgfmu_h_path = "wgfmu_x64\wgfmu.h"
+        #wgfmu_lib_path = "wgfmu_x64\wgfmu.lib"
         
-        self.gpib_address = gpib_address
-        self.gpib_str = f"GPIB0::{gpib_address}::INSTR"
-        self.smus = smu_channel_list.copy()
-        self.rm = pyvisa.ResourceManager()
+        # Communicaton Channels for your B1500
+        self.b1500_gpib_address = b1500_gpib_address
         
-        self.b1500 = self.rm.open_resource( self.gpib_str )
-        self.b1500.timeout = timeout
-        self.timeout_max = 2000000 # maximum timeout for the b1500 VISA resource manager
-        self.b1500.write("*rst; status:preset; *cls")
+        # Channel IDs for the various modules you want to control
+        #   slot channels are <slot_number>0<subslotnumber>.
+        #   so look at the back of your b150 and get the slot numbers for everything!
+        #   the thing in slot 1 can be addressed as 101
+        #   some cards may have multiple submodules (e.g. the WGFMU). In this case each submodule is addressed sequentially
+        #   so a WGFMU in slot 2 would have WGFMU1 on channel 201, WGFMU2 on channel 202.
+        #wgfmu_channel_1 = 201
+        #wgfmu_channel_2 = 202
+        #wgfmu_channel_3 = 301
+        #wgfmu_channel_4 = 302
         
-        self.DEBUG_PRINT = DEBUG_PRINT
+        self.wgfmus = wgfmu_channel_list.copy()
         
-        b1500_query = self.b1500.query("*IDN?")
-        print(f"b1500 is bound to {b1500_query}")
+        self.b1500_gpib_str = f"GPIB0::{self.b1500_gpib_address}::INSTR"
+        self.wgfmu_gpib_str = ct.create_string_buffer( bytes( self.b1500_gpib_str , 'utf-8' ) )
+        
+        # This loads the WGFMU dll
+        # The dll contains all the handles to the C++ functions we will need to use to control the WGFMU
+        self.wg = ct.cdll.LoadLibrary( wgfmu_dll_path )
+
+        
 
     def core_method(self):
-        return "This is a core method of B1500Core."
+        return "This is a core method of B1500CoreWGFMU."
 
     @staticmethod
     def load_methods():
@@ -45,13 +59,13 @@ class B1500_SMU:
             module_name = relative_path.replace(os.sep, ".")[:-3]  # Remove ".py"
             
             # Dynamically import the module
-            module = importlib.import_module(f"B1500_SMU.{module_name}")
+            module = importlib.import_module(f"B1500_WGFMU.{module_name}")
             
             # Add all callable methods from the module to the class
             for attr_name in dir(module):
                 attr = getattr(module, attr_name)
                 if callable(attr):  # Ensure it's a function
-                    setattr(B1500_SMU, attr_name, attr)  # Add to the class
+                    setattr(B1500_WGFMU, attr_name, attr)  # Add to the class
 
 # Dynamically load methods during class definition
-B1500_SMU.load_methods()
+B1500_WGFMU.load_methods()
