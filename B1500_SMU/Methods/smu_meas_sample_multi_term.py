@@ -83,6 +83,7 @@ def smu_meas_sample_multi_term( self, smu_numD, smu_numG, smu_numS, smu_numB, vm
         
         # Read data
         data = self.b1500.read()
+        print(data)
         # data = self.b1500.read()
         return(data)
 
