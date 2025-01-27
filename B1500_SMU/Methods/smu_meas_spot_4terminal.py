@@ -38,7 +38,7 @@ def smu_meas_spot_4termininal( self, smu_numD, smu_numG, smu_numS, smu_numB,VDbi
                 self.b1500.write( f"CL {smu_chD},{smu_chG},{smu_chS},{smu_chB}" )
             
             data = self.b1500.read()
-            
+            print(data)
             times , voltages , currents = self.process_data_str_tiv( data )
             
             return ( times , voltages , currents )

@@ -27,6 +27,16 @@ def IVSweep(
     Returns:
         dict: A dictionary containing 'voltages', 'currents', and 'timestamps'.
     """
+    
+    self.connect_smu_list([1])
+    self.bias_smu(1, 0, 100e-3 )
+    self.connect_smu_list([2])
+    self.bias_smu(2, 0, 100e-3 )
+    self.connect_smu_list([3])
+    self.bias_smu(3, 0, 100e-3)
+    self.connect_smu_list([4])
+    self.bias_smu(4, 0, 100e-3 )
+    
     # Perform the IV sweep using the core SMU functionality
     print(f"Starting IV Sweep on SMU {smu_num}...")
     results = self.smu_meas_sweep(
@@ -34,18 +44,18 @@ def IVSweep(
         vstart=vstart,
         vstop=vstop,
         nsteps=nsteps,
-        mode=1,
+        mode=3,
         icomp=icomp,
         num_averaging_samples=1,
         connect_first=connect_first,
         disconnect_after=disconnect_after,
         plot_data=False,  # Disable plotting in the core function
     )
-
+    print("Finished, Now returning results")
     # Extract voltages, currents, and timestamps
-    voltages = results["voltages"]
-    currents = results["currents"]
-    timestamps = results["timestamps"]
+    times = results[0]
+    voltages = results[1]
+    currents = results[2]
 
     # Print results
     print(f"IV Sweep Completed on SMU {smu_num}.")
@@ -53,7 +63,7 @@ def IVSweep(
     print(f"Compliance Current: {icomp} A")
     print(f"Number of Steps: {nsteps}")
     print("Results:")
-    for i, (v, i_current, t) in enumerate(zip(voltages, currents, timestamps)):
+    for i, (v, i_current, t) in enumerate(zip(voltages, currents, times)):
         print(f"Step {i+1}: Voltage={v:.3f} V, Current={i_current:.3e} A, Time={t:.3f} s")
 
     # Plot results if requested

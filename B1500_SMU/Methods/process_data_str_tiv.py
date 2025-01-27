@@ -1,3 +1,4 @@
+import numpy as np
 def process_data_str_tiv( self , data_str ):
         """Processes data string and returns values as a tuple of numpy arrays
         Return order is time , voltage , current
