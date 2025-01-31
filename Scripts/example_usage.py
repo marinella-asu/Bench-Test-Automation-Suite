@@ -3,7 +3,7 @@ from B1500.B1500Unified import B1500
 # Define experiment parameters
 parameters = {
     "Name": "Evan",
-    "Test Number": 101,
+    "Test Number": "ask",
     "Die Number": 1,
     "Device Number": 67,
     "Read Voltage": 100,
