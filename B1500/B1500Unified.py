@@ -3,7 +3,41 @@ from WGFMU.B1500_WGFMU_Core import WGFMU
 import ctypes as ct # Convert between python and C data types (needed for WGFMU)
 from TestInfo.TestInfo import TestInfo
 import pyvisa
+import os
+import numpy as np
+import pandas as pd
+from datetime import datetime
+ # Unit type mapping from the provided table
+import os
+import numpy as np
+import pandas as pd
+from datetime import datetime
+import re
 
+# Unit type mapping from the B1500 documentation
+UNIT_MAP = {
+    "V": "Voltage (V)", "I": "Current (A)", "F": "Frequency (Hz)",
+    "Z": "Impedance (Ω)", "Y": "Admittance (S)", "C": "Capacitance (F)",
+    "L": "Inductance (H)", "R": "Phase (radian)", "P": "Phase (degree)",
+    "D": "Dissipation Factor", "Q": "Quality Factor", "X": "Sampling Index",
+    "T": "Time (s)"
+}
+
+STATUS_CODES = {
+    "N": "No Error", "T": "Compliance Reached (Other Channel)", "C": "Compliance Reached",
+    "V": "Over Measurement Range", "X": "Oscillating Output", "F": "Force Saturation",
+    "G": "Search Target Not Found", "S": "Search Stopped", "U": "Null Loop Unbalance",
+    "D": "IV Amplifier Saturation", "W": "First/Intermediate Sweep Step", "E": "Last Sweep Step"
+}
+
+# Subchannel mapping (slots 1-10, subchannels 1-2)
+CHANNEL_MAP = {
+    "A": 101, "B": 201, "C": 301, "D": 401, "E": 501, "F": 601, "G": 701, "H": 801, "I": 901, "J": 1001,
+    "a": 102, "b": 202, "c": 302, "d": 402, "e": 502, "f": 602, "g": 702, "h": 802, "i": 902, "j": 1002
+}
+
+
+   
 
 class B1500:
     def __init__(self, gpib_address = 17, smu_channels= [301, 401, 501, 601], wgfmu_channels = [101, 102],  parameters=None, timeout=200000):
@@ -78,13 +112,105 @@ class B1500:
         print(f"Test data saved to {file_path}.")
 
     @staticmethod
-    def data_cleaner(raw_data):
+
+    def data_clean(self, raw_data):
         """
-        Placeholder for data cleaning logic.
+        Cleans and structures raw B1500 output data, mapping it to the correct SMU/WGFMU channels.
+        Saves the cleaned data into a structured CSV file inside the 'data/' directory.
+
         Args:
-            raw_data: Raw data from the B1500.
+            raw_data (str): The raw ASCII data string from the B1500 instrument.
+
         Returns:
-            dict: Cleaned data with column names as keys and lists as values.
+            pd.DataFrame: A DataFrame containing structured measurement data.
         """
-        print("Data cleaner placeholder. Add your data cleaning logic here.")
-        return raw_data  # Modify this to implement your cleaning logic
+        print("🔄 Starting data_clean method...")
+
+        if not hasattr(self, "test_info") or not self.test_info:
+            raise ValueError("B1500 object is missing TestInfo parameters.")
+
+        test_info = self.test_info
+        experimenter = test_info.parameters.get("Name", "Unknown_Experimenter")
+        test_number = test_info.parameters.get("Test Number", "Unknown_Test")
+        die_number = test_info.parameters.get("Die Number", "Unknown_Die")
+        device_number = test_info.parameters.get("Device Number", "Unknown_Device")
+
+        # Create a structured output directory
+        date_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        base_dir = os.path.join("data", experimenter)
+        os.makedirs(base_dir, exist_ok=True)
+
+        csv_filename = f"{test_number}_Die{die_number}_Device{device_number}_{date_str}.csv"
+        csv_filepath = os.path.join(base_dir, csv_filename)
+
+        print(f"📂 Saving CSV to: {csv_filepath}")
+
+        # Store parsed data
+        parsed_data = []
+
+        # Split raw data string into individual entries
+        entries = raw_data.strip().split(",")
+
+        print(f"🔍 Raw Data Entries Count: {len(entries)}")
+        print(f"📜 First 10 Entries: {entries[:10]}")
+
+        # Identify SMU and WGFMU channels from the B1500 object
+        channel_lookup = {ch: f"SMU{i+1}" for i, ch in enumerate(self.smus)}
+        channel_lookup.update({ch: f"WGFMU{i+1}" for i, ch in enumerate(self.wgfmus)})
+
+        print(f"📡 Channel Lookup Table: {channel_lookup}")
+
+        # Process each entry
+        pattern = re.compile(r"([A-Z][a-zA-Z]{2})([+-]\d+\.\d+E[+-]\d+)")
+
+        
+        temp_data = []  # Store each measurement as a separate row
+        for entry in entries:
+            match = pattern.match(entry)
+            if not match:
+                print(f"⚠️ Skipping malformed entry: {entry}")
+                continue  # Skip malformed entries
+
+            unit_code, value = match.groups()
+
+            print(f"🛠️ Extracted Unit Code: {unit_code}, Value: {value}")
+
+            # Extract status, channel, and unit
+            status = STATUS_CODES.get(unit_code[0], "Unknown Status")
+            channel_identifier = unit_code[1]
+            unit_type = UNIT_MAP.get(unit_code[2], f"Unknown Unit ({unit_code[2]})")
+
+            # Map channel identifier to SMU/WGFMU name
+            channel_number = CHANNEL_MAP.get(channel_identifier, None)
+            mapped_channel = channel_lookup.get(channel_number, None)
+
+            if not mapped_channel:
+                print(f"❌ Unrecognized Channel Identifier: {channel_identifier} (Skipping entry)")
+                continue
+
+            temp_data.append([status, mapped_channel, unit_type, value])
+
+        print(f"✅ Parsed Data Count: {len(temp_data)}")
+        if not temp_data:
+            print("❌ No valid data extracted. Check raw data format.")
+            return pd.DataFrame()
+
+        # Convert parsed data to DataFrame
+        df = pd.DataFrame(temp_data, columns=["Status", "Module", "Unit", "Value"])
+
+        print("📝 Initial DataFrame Preview:")
+        print(df.head(10))
+
+        # Now group by measurement instances
+        df["Measurement"] = df.groupby(["Module", "Unit"]).cumcount()  # Creates a unique index per measurement
+        df_pivot = df.pivot(index="Measurement", columns=["Module", "Unit"], values="Value")
+
+        print("📊 Pivoted DataFrame Preview:")
+        print(df_pivot.head(10))
+
+        # Write clean CSV
+        df_pivot.to_csv(csv_filepath)
+
+        print(f"✅ Data cleaned and saved to: {csv_filepath}")
+
+        return df_pivot
