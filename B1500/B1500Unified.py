@@ -113,6 +113,8 @@ class B1500:
 
     @staticmethod
 
+
+
     def data_clean(self, raw_data):
         """
         Cleans and structures raw B1500 output data, mapping it to the correct SMU/WGFMU channels.
@@ -122,7 +124,7 @@ class B1500:
             raw_data (str): The raw ASCII data string from the B1500 instrument.
 
         Returns:
-            pd.DataFrame: A DataFrame containing structured measurement data.
+            dict: A dictionary containing structured NumPy arrays for each unit type.
         """
         print("🔄 Starting data_clean method...")
 
@@ -163,7 +165,6 @@ class B1500:
         # Process each entry
         pattern = re.compile(r"([A-Z][a-zA-Z]{2})([+-]\d+\.\d+E[+-]\d+)")
 
-        
         temp_data = []  # Store each measurement as a separate row
         for entry in entries:
             match = pattern.match(entry)
@@ -188,22 +189,25 @@ class B1500:
                 print(f"❌ Unrecognized Channel Identifier: {channel_identifier} (Skipping entry)")
                 continue
 
-            temp_data.append([status, mapped_channel, unit_type, value])
+            # New Column Name Format: SMU1_Voltage, SMU2_Current, WGFMU1_Time, etc.
+            column_name = f"{mapped_channel}_{unit_type.split()[0]}"  # Extracts first word from unit type
+
+            temp_data.append([status, mapped_channel, unit_type, value, column_name])
 
         print(f"✅ Parsed Data Count: {len(temp_data)}")
         if not temp_data:
             print("❌ No valid data extracted. Check raw data format.")
-            return pd.DataFrame()
+            return {}
 
         # Convert parsed data to DataFrame
-        df = pd.DataFrame(temp_data, columns=["Status", "Module", "Unit", "Value"])
+        df = pd.DataFrame(temp_data, columns=["Status", "Module", "Unit", "Value", "Column_Name"])
 
         print("📝 Initial DataFrame Preview:")
         print(df.head(10))
 
-        # Now group by measurement instances
+        # Pivot so each module-unit pair becomes a unique column
         df["Measurement"] = df.groupby(["Module", "Unit"]).cumcount()  # Creates a unique index per measurement
-        df_pivot = df.pivot(index="Measurement", columns=["Module", "Unit"], values="Value")
+        df_pivot = df.pivot(index="Measurement", columns="Column_Name", values="Value")
 
         print("📊 Pivoted DataFrame Preview:")
         print(df_pivot.head(10))
@@ -213,4 +217,12 @@ class B1500:
 
         print(f"✅ Data cleaned and saved to: {csv_filepath}")
 
-        return df_pivot
+        # Convert DataFrame into structured NumPy arrays
+        output_data = {}
+        for column in df_pivot.columns:  # Loop through all unique measurement columns
+            unit_array = df_pivot[column].to_numpy()  # Convert to NumPy array
+            output_data[column] = unit_array  # Store with proper labeling
+
+            print(f"📦 Extracted NumPy Array for {column}: {unit_array.shape}")
+
+        return output_data

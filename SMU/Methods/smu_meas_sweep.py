@@ -1,78 +1,99 @@
 import numpy as np
 import matplotlib.pyplot as plt
-def smu_meas_sweep( self , smu_num , vstart=0.0 , vstop=0.10 , nsteps=51 , mode=1, icomp=100e-3, num_averaging_samples=1 , connect_first=True, disconnect_after=True , vmax_override=False, plot_data=False ):
-        # Connects smu_num and performs a measurement sweep with minimum hold/delay settings
-        # MODE: 1 = linear, 2 = log , 3 = linear bidirectional , 4 = log bidirectional
-        # Max steps = 10001
-        VMAX = 7
-        if ((np.abs(vstart) > VMAX) or (np.abs(vstop) > VMAX)) and (not vmax_override):
-            raise ValueError("Chosen voltage range is ABOVE 7V! If you really want to do this, set vmax_override=True" )
-        smu_ind = smu_num - 1
-        smu_ch = self.smus[ smu_ind ]
-        
-        
-        self.b1500.write( "FMT 1,1" )
-        self.b1500.write( "TSC 1" ) # enable timestamp output
-        self.b1500.write( "FL 1" ) # 0: disable smu filter, 1: enable
-        self.b1500.write( f"AV {num_averaging_samples},0" ) # Sets averaging (10 samples to 1 data point)
-        #self.b1500.write( f"AD {smu_ch},0" ) # fast ADC
-        self.b1500.write( f"AAD {smu_ch},1" ) # 0: fast ADC, 1: HR ADC
-        
-        # Connect SMUS
-        if connect_first:
-            self.b1500.write( f"CN {smu_ch}" ) # connect sweep SMU
-            # print("crap")
-            # self.b1500.write(f"UNT? 0")
-            # print(self.b1500.read())
-            # print("it worked 2")
-            self.b1500.write( f"DV {smu_ch},0,{vstart}" ) # set sweep SMU to start voltage pre-emptively
-                                                          #    ch,range_setting,voltage. leave range setting at 0 for auto.
-        # Sweep setup
-        self.b1500.write( f"MM 2,{smu_ch}" ) # Staircase sweep measurement on SMU1
-        self.b1500.write( f"CMM {smu_ch},0" ) # 0: compliance side measurement, 1: current measurement
-        self.b1500.write( f"RI {smu_ch},0" ) # 0: auto ranging # 11 - 1nA Limited (matches EasyExpert)
-        self.b1500.write( f"WT 0,0,0" ) # hold, delay, s_delay to 0
-        self.b1500.write( f"WM 2,1" ) # A,B - A =1 keep going if we hit compliance, A=2 abort if we hit compliance, B=1 = return to START val after meas, B=2 =stay at STOP val after meas
 
-        
-        # WV Command
-        # WV chnum,mode,range,start,stop,step[,Icomp[,Pcomp]]
-        # mode: 1 - Linear,  2 - Log, 3: Linear bidirectional, 4: Log bidirectional
-        self.b1500.write( f"WV {smu_ch},{mode},0,{vstart},{vstop},{nsteps},{icomp:.2E}")
-        self.b1500.write( "TSR" ) # Reset timestamp for all channels
-        
-        print(self.b1500.query("*LRN? 0"))
-        
-        self.b1500.write( "XE" ) # Execute measurement
-        
-        op_done = self.b1500.query( "*OPC?" ) # should block until operation completes, I think
-        
-        
-        # Reset Measurement SMU
-        if disconnect_after:
-            self.b1500.write( f"CL {smu_ch}" ) # Disconnect sweep SM
-            
-        # Read data
-        data = self.b1500.read()
-        print(data)
-        # Process data
-        times , voltage , current = self.process_data_str_tiv( data )
-        
-        plot_handles = ()
-        if plot_data:
-            fig, ax = plt.subplots(nrows=1, ncols=2)
-            ax[0].plot( voltage , current , linestyle="-" , color="b", markersize=2 )
-            ax[0].set_xlabel( 'Voltage (V)' )
-            ax[0].set_ylabel( 'Current (A)' )
-            
-            resistance = voltage / current
-            ax[1].plot( voltage , resistance  , linestyle="-" , color="r", markersize=2 )
-            ax[1].set_xlabel( 'Voltage (V)' )
-            ax[1].set_ylabel( 'Resistance ($\Omega$)' )
-            
-            fig.tight_layout()
-            plot_handles = ( fig , ax )
-            
-            plt.show(block=False)
-        
-        return ( times , voltage , current , plot_handles )
+def smu_meas_sweep(self, smu_nums, vstart=0.0, vstop=0.10, nsteps=51, mode=1, icomp=100e-3, 
+                    num_averaging_samples=1, connect_first=True, disconnect_after=True, 
+                    vmax_override=False):
+    """
+    Performs a staircase voltage sweep measurement on multiple SMUs.
+
+    Parameters:
+    - smu_nums (list): List of SMU channel numbers (e.g., [1, 2, 3])
+    - vstart (float): Start voltage
+    - vstop (float): Stop voltage
+    - nsteps (int): Number of steps in the sweep
+    - mode (int): Sweep mode (1 = Linear, 2 = Log, 3 = Linear Bi-dir, 4 = Log Bi-dir)
+    - icomp (float): Compliance current limit (default: 100mA)
+    - num_averaging_samples (int): Number of averaging samples
+    - connect_first (bool): Connect SMU before measurement (default: True)
+    - disconnect_after (bool): Disconnect SMU after measurement (default: True)
+    - vmax_override (bool): Allow voltage above 7V if True
+
+    Returns:
+    - NumPy array containing structured measurement data if multiple SMUs
+    - (times, voltage, current) if a single SMU
+    """
+
+    VMAX = 7  # Maximum safe voltage limit
+    if ((abs(vstart) > VMAX) or (abs(vstop) > VMAX)) and not vmax_override:
+        raise ValueError("Voltage exceeds 7V! Set vmax_override=True to proceed.")
+
+    # Resolve SMU channels from numbers
+    smu_channels = [self.smus[num - 1] for num in smu_nums]  # Convert SMU numbers to channels
+    smu_channels_str = ", ".join(map(str, smu_channels))
+
+    # Configure measurement settings
+    self.b1500.write("FMT 1,1")
+    self.b1500.write("TSC 1")  # Enable timestamp output
+    self.b1500.write("FL 1")  # Disable SMU filter
+    self.b1500.write(f"AV {num_averaging_samples},0")  # Set averaging samples
+
+    # Enable HR ADC for each SMU
+    for smu_ch in smu_channels:
+        self.b1500.write(f"AAD {smu_ch},1")  
+
+    # Connect SMUs and set initial voltage
+    if connect_first:
+        for smu_ch in smu_channels:
+            self.b1500.write(f"CN {smu_ch}")
+            self.b1500.write(f"DV {smu_ch},0,{vstart}")
+
+    # Configure sweep mode for multiple SMUs
+    self.b1500.write(f"MM 2, {smu_channels_str}")  # Multi-SMU measurement
+    for smu_ch in smu_channels:
+        self.b1500.write(f"CMM {smu_ch},0")  # Compliance-side measurement
+        self.b1500.write(f"RI {smu_ch},0")  # Auto-ranging
+    self.b1500.write("WT 0,0,0")  # Zero hold, delay, and step delay
+
+    # Set up voltage sweep
+    for smu_ch in smu_channels:
+        self.b1500.write(f"WV {smu_ch},{mode},0,{vstart},{vstop},{nsteps},{icomp:.2E}")
+    self.b1500.write("TSR")  # Reset timestamp
+
+    # Execute measurement
+    self.b1500.write("XE")
+    self.b1500.query("*OPC?")  # Block until operation completes
+
+    # Disconnect SMUs if required
+    if disconnect_after:
+        for smu_ch in smu_channels:
+            self.b1500.write(f"CL {smu_ch}")
+
+    # Read and process data
+    data = self.data_clean(self.b1500.read())  # Returns a DataFrame
+
+    # Extract dynamic columns for each SMU
+    extracted_data = []
+    for smu_num in smu_nums:
+        time_col = f"SMU{smu_num}_Time (s)"
+        voltage_col = f"SMU{smu_num}_Voltage (V)"
+        current_col = f"SMU{smu_num}_Current (A)"
+
+        try:
+            time_values = data[time_col].to_numpy(dtype=np.float64)
+            voltage_values = data[voltage_col].to_numpy(dtype=np.float64)
+            current_values = data[current_col].to_numpy(dtype=np.float64)
+
+        except KeyError as e:
+            missing_col = str(e).strip("'")
+            print(f"❌ Missing expected column in processed data: {missing_col}\n Returning data array") # REMEMBER THIS DOES NOT STOP THE PROGRAM ITS JUST A PRINT SO YOU CAN SEE WHAT WENT WRONG WITH YOUR DATA
+            return data  # Return full dataset if missing columns
+
+    # If only one SMU, return time, voltage, and current separately
+    if len(smu_nums) == 1:
+        return time_values, voltage_values, current_values # Unpack tuple for single SMU
+
+    # If multiple SMUs, return structured NumPy array
+    structured_data = np.column_stack([np.hstack(data) for data in extracted_data])
+    print(f"📦 Returning structured NumPy array with shape {structured_data.shape}")
+    return structured_data

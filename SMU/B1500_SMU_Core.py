@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 
 class SMU:
     def __init__(self, instrument, smus):
+        super().__init__() 
         """
         Initializes the B1500 SMU object.
 
@@ -45,5 +46,5 @@ class SMU:
             for attr_name in dir(module):
                 attr = getattr(module, attr_name)
                 if callable(attr):  # Ensure it's a function
-                    setattr(SMU, attr_name, attr)  # Add to the class
+                    setattr(SMU, attr_name, attr)  # Add to the classsuper().__init__() 
 
