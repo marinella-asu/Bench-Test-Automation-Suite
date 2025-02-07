@@ -115,65 +115,69 @@ class B1500:
 
 
 
-    def data_clean(self, raw_data):
+    def data_clean(self, raw_data, parameters):
         """
         Cleans and structures raw B1500 output data, mapping it to the correct SMU/WGFMU channels.
-        Saves the cleaned data into a structured CSV file inside the 'data/' directory.
+        Saves the cleaned data into both a structured CSV file and a TXT file inside the 'data/' directory.
 
         Args:
             raw_data (str): The raw ASCII data string from the B1500 instrument.
+            parameters (dict): Dictionary containing test parameters (e.g., "Name", "Test Number", etc.)
 
         Returns:
             dict: A dictionary containing structured NumPy arrays for each unit type.
         """
         print("🔄 Starting data_clean method...")
 
-        if not hasattr(self, "test_info") or not self.test_info:
-            raise ValueError("B1500 object is missing TestInfo parameters.")
+        # Extract parameter values dynamically
+        experimenter = parameters.get("Name", "Unknown_Experimenter")
+        test_number = parameters.get("Test Number", "Unknown_Test")
+        die_number = parameters.get("Die Number", "Unknown_Die")
+        device_number = parameters.get("Device Number", "Unknown_Device")
 
-        test_info = self.test_info
-        experimenter = test_info.parameters.get("Name", "Unknown_Experimenter")
-        test_number = test_info.parameters.get("Test Number", "Unknown_Test")
-        die_number = test_info.parameters.get("Die Number", "Unknown_Die")
-        device_number = test_info.parameters.get("Device Number", "Unknown_Device")
+        # Locate "Bench_Test_Automation_Suite" folder dynamically
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        while not script_dir.endswith("Bench_Test_Automation_Suite"):
+            script_dir = os.path.dirname(script_dir)  # Move up one level
 
-        # Create a structured output directory
-        date_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        base_dir = os.path.join("data", experimenter)
+        # Ensure the data is stored inside "Bench_Test_Automation_Suite/Data"
+        base_dir = os.path.join(script_dir, "Data", experimenter)
         os.makedirs(base_dir, exist_ok=True)
 
-        csv_filename = f"{test_number}_Die{die_number}_Device{device_number}_{date_str}.csv"
-        csv_filepath = os.path.join(base_dir, csv_filename)
+        # Generate filenames
+        date_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        file_basename = f"{test_number}_Die{die_number}_Device{device_number}_{date_str}"
+        csv_filepath = os.path.join(base_dir, file_basename + ".csv")
+        txt_filepath = os.path.join(base_dir, file_basename + ".txt")
 
         print(f"📂 Saving CSV to: {csv_filepath}")
+        print(f"📂 Saving TXT to: {txt_filepath}")
 
         # Store parsed data
         parsed_data = []
 
         # Split raw data string into individual entries
         entries = raw_data.strip().split(",")
-
         print(f"🔍 Raw Data Entries Count: {len(entries)}")
         print(f"📜 First 10 Entries: {entries[:10]}")
 
         # Identify SMU and WGFMU channels from the B1500 object
         channel_lookup = {ch: f"SMU{i+1}" for i, ch in enumerate(self.smus)}
         channel_lookup.update({ch: f"WGFMU{i+1}" for i, ch in enumerate(self.wgfmus)})
-
         print(f"📡 Channel Lookup Table: {channel_lookup}")
 
-        # Process each entry
+        # Regex pattern to extract unit code and value
         pattern = re.compile(r"([A-Z][a-zA-Z]{2})([+-]\d+\.\d+E[+-]\d+)")
 
-        temp_data = []  # Store each measurement as a separate row
+        # Process each entry
+        temp_data = []
         for entry in entries:
             match = pattern.match(entry)
             if not match:
                 print(f"⚠️ Skipping malformed entry: {entry}")
-                continue  # Skip malformed entries
+                continue
 
             unit_code, value = match.groups()
-
             print(f"🛠️ Extracted Unit Code: {unit_code}, Value: {value}")
 
             # Extract status, channel, and unit
@@ -189,9 +193,8 @@ class B1500:
                 print(f"❌ Unrecognized Channel Identifier: {channel_identifier} (Skipping entry)")
                 continue
 
-            # New Column Name Format: SMU1_Voltage, SMU2_Current, WGFMU1_Time, etc.
-            column_name = f"{mapped_channel}_{unit_type.split()[0]}"  # Extracts first word from unit type
-
+            # Column naming: e.g., SMU1_Voltage, WGFMU1_Current
+            column_name = f"{mapped_channel}_{unit_type.split()[0]}"
             temp_data.append([status, mapped_channel, unit_type, value, column_name])
 
         print(f"✅ Parsed Data Count: {len(temp_data)}")
@@ -201,28 +204,43 @@ class B1500:
 
         # Convert parsed data to DataFrame
         df = pd.DataFrame(temp_data, columns=["Status", "Module", "Unit", "Value", "Column_Name"])
-
         print("📝 Initial DataFrame Preview:")
         print(df.head(10))
 
-        # Pivot so each module-unit pair becomes a unique column
-        df["Measurement"] = df.groupby(["Module", "Unit"]).cumcount()  # Creates a unique index per measurement
+        # Pivot DataFrame so each module-unit pair becomes a unique column
+        df["Measurement"] = df.groupby(["Module", "Unit"]).cumcount()
         df_pivot = df.pivot(index="Measurement", columns="Column_Name", values="Value")
 
         print("📊 Pivoted DataFrame Preview:")
         print(df_pivot.head(10))
 
-        # Write clean CSV
-        df_pivot.to_csv(csv_filepath)
+        # ---- Write Clean CSV File ----
+        with open(csv_filepath, "w") as f:
+            # Write metadata as comments
+            for key, value in parameters.items():
+                f.write(f"# {key}: {value}\n")
+            f.write("\n")  # Blank line before actual data
+            df_pivot.to_csv(f)
 
-        print(f"✅ Data cleaned and saved to: {csv_filepath}")
+        # ---- Write Clean TXT File ----
+        with open(txt_filepath, "w") as f:
+            # Write metadata in a structured "box" format
+            max_key_length = max(len(k) for k in parameters.keys())
+            f.write("=" * (max_key_length + 20) + "\n")
+            for key, value in parameters.items():
+                f.write(f"{key.ljust(max_key_length)}: {value}\n")
+            f.write("=" * (max_key_length + 20) + "\n\n")
+
+            # Write the data in a readable format
+            df_pivot.to_csv(f, sep="\t")
+
+        print(f"✅ Data cleaned and saved to: {csv_filepath} and {txt_filepath}")
 
         # Convert DataFrame into structured NumPy arrays
         output_data = {}
-        for column in df_pivot.columns:  # Loop through all unique measurement columns
-            unit_array = df_pivot[column].to_numpy()  # Convert to NumPy array
-            output_data[column] = unit_array  # Store with proper labeling
-
+        for column in df_pivot.columns:
+            unit_array = df_pivot[column].to_numpy()
+            output_data[column] = unit_array
             print(f"📦 Extracted NumPy Array for {column}: {unit_array.shape}")
 
         return output_data
