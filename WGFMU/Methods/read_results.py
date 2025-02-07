@@ -1,30 +1,28 @@
-def read_results( self , channel_id ):
-        measured_size = ct.c_int()
-        total_size = ct.c_int()
-        
-        # Pass references to our size variables into this function so they can be updated
-        self.wg.WGFMU_getMeasureValueSize( channel_id, ct.byref( measured_size ), ct.byref( total_size ) )
-        
-        #print(measured_size.value)
-        # print(f"THIS IS ERROR {measured_size}")
-        times = np.zeros( measured_size.value )
-        values = np.zeros( measured_size.value )
-        
-        for ind in range( 0, measured_size.value ):
-            time = ct.c_double()
-            value = ct.c_double()
-            #voltage = ct.c_double()
-            
-            self.wg.WGFMU_getMeasureValue( channel_id , ind , ct.byref( time ) , ct.byref( value ) )
-            #wg.WGFMU_getInterpolatedForceValue( channel_id1 , time , ct.byref( voltage ) )
-            #print(f"This is channel_id: {channel_id}") #Quinn
-            #print(f"This is time: {time}") #Quinn
-            #print(f"This is value: {value}") #Quinn
-            times[ind] = time.value
-            values[ind] = value.value
-            
-        #print("This is matrix of time:", time) #Quinn
-        #print("This is matrix of value:", value) #Quinn
-        
-        
-        return times, values
+import ctypes as ct  # Import C types for low-level interaction
+import numpy as np  # Import NumPy for handling numerical data
+
+def fetch_wgfmu_results(self, channel_id):
+    """
+    Retrieves measurement results from a specified WGFMU channel.
+
+    Args:
+        channel_id (int): The ID of the WGFMU channel to fetch results from.
+
+    Returns:
+        tuple: (timestamps, measured_values) as NumPy arrays.
+    """
+    num_points = ct.c_int()  # Create C integer for storing the number of data points
+    self.wg.WGFMU_getMeasureValueSize(channel_id, ct.byref(num_points))  # Query number of data points
+
+    if num_points.value == 0:  # If no data is available, return empty arrays
+        return np.array([]), np.array([])
+
+    # Create NumPy arrays to store results
+    timestamps = np.zeros(num_points.value, dtype=np.float64)
+    measured_values = np.zeros(num_points.value, dtype=np.float64)
+
+    # Read measurement data
+    self.wg.WGFMU_getMeasureValue(channel_id, timestamps.ctypes.data_as(ct.POINTER(ct.c_double)),
+                                  measured_values.ctypes.data_as(ct.POINTER(ct.c_double)))
+
+    return timestamps, measured_values  # Return the results as NumPy arrays
