@@ -1,0 +1,6 @@
+Settle
+Shock
+Settle
+Read
+Settle
+Idle
