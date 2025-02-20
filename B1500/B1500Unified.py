@@ -84,7 +84,7 @@ class B1500:
         # self.resource_manager = pyvisa.ResourceManager()
         # self.connection = self._connect_to_instrument()
         self.connection = "Connection" # THIS IS JUST FOR A TEST PLEASE CHANGE THIS FOR THE RELEASE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+        
         # Initialize SMU and WGFMU objects
         
         self.smu = SMU(self.connection, self.smus)
@@ -94,6 +94,15 @@ class B1500:
         # Initialize TestInfo and validate parameters
         self.test_info = TestInfo(parameters or {})
         self.test_info.validate_and_prompt(timeout=timeout)
+        self.parameters = parameters
+
+        if hasattr(self.test_info, "VDD_WGFMU"):
+            if (self.test_info.VDD_WGFMU == 1):
+                self.test_info.ch_vdd = self.wgfmu.wgfmus[0]
+                self.test_info.ch_vss = self.wgfmu.wgfmus[1]
+            elif (self.test_info.VDD_WGFMU == 0):
+                self.test_info.ch_vdd = self.wgfmu.wgfmus[1]
+                self.test_info.ch_vss = self.wgfmu.wgfmus[0]
 
         VDD_waveform_data = self.test_info.parameters.get("VDD Waveform Data", None)
         VSS_waveform_data = self.test_info.parameters.get("VSS Waveform Data", None)
@@ -286,3 +295,41 @@ class B1500:
             print(f"📦 Extracted NumPy Array for {column}: {unit_array.shape}")
 
         return output_data
+    
+
+    def save_numpy_to_csv(self, TestInfo, array, filename = "Saved"):
+        """
+        Saves a NumPy array as a CSV file in the Data directory using the experimenter's name.
+
+        Parameters:
+        - array (numpy.ndarray): The NumPy array to be saved.
+        - filename (str): The desired base filename (without extension).
+        - TestInfo (object): Object containing test parameters, including "Name".
+
+        Returns:
+        - str: Full path to the saved CSV file.
+        """
+        print("🔄 Starting save_numpy_to_csv method...")
+
+        # Get experimenter's name
+        experimenter = TestInfo.Name if hasattr(TestInfo, "Name") else "Unknown_Experimenter"
+
+        # Locate "Bench_Test_Automation_Suite" folder dynamically
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        while not script_dir.endswith("Bench_Test_Automation_Suite"):
+            script_dir = os.path.dirname(script_dir)  # Move up one level
+
+        # Ensure the data is stored inside "Bench_Test_Automation_Suite/Data"
+        base_dir = os.path.join(script_dir, "Data", experimenter)
+        os.makedirs(base_dir, exist_ok=True)
+
+        # Generate timestamped filename
+        date_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        csv_filepath = os.path.join(base_dir, f"{filename}_{date_str}.csv")
+
+        # Save the NumPy array as a CSV
+        np.savetxt(csv_filepath, array, delimiter=",", fmt="%.6e")
+
+        print(f"✅ NumPy array saved to: {csv_filepath}")
+
+        return csv_filepath

@@ -1,8 +1,11 @@
 import ctypes as ct
 import time  # Import time module for performance tracking
+import os
 import wgfmu_consts as wgc  # Import constants for WGFMU operations
+import pandas as pd
+import numpy as np
 
-def create_waveform( self, drive_data , ranging_data=() , num_copies=1 , add_to_sequence=True , pattern_name="" ):
+def create_waveform(self, TestInfo, patt_name="", alt_waveform = None):
         # drive data: tuple, (time , voltage) , both numpy vectors
         # ranging data: tuple ( time , range setting ) , numpy vector and list
         # meas data: tuple (time , Npts , interval , averaging time , mode )
@@ -12,66 +15,365 @@ def create_waveform( self, drive_data , ranging_data=() , num_copies=1 , add_to_
         #Drive data needs to be t, v, t, v lets do VDD then VSS
 
 
+        # THIS IS ONLY FOR USING AN ALTERNATE WAVEFORM
+        # IF YOUR LOOKING FOR THE USUAL USE CASE ITS BELOW THIS IF STATEMENT
+        # |
+        # |
+        # |  Condense this if statement if you aren't looking for alternate waveforms
+        # V  
+        if alt_waveform is not None:
+            waveform_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Waveforms") 
+            waveform_folder += f"{alt_waveform}.txt"  
+            data = pd.read_csv(waveform_folder, sep='\s+', header=None, dtype=str)
+            labels = data.iloc[:, 0].tolist()
+            times = data.iloc[:, 1].astype(float).tolist()
+            vdd_voltage = data.iloc[:, 2].tolist()
+            vss_voltage = data.iloc[:, 3].tolist()
+            compliance = data.iloc[:, 4].fillna("").tolist() if data.shape[1] > 4 else [""] * len(labels)  # Handle missing compliance
 
-
-        # if someone sends in just one channel, expand it to a list for the following logic
-        if type(ch_list) == int:
-            ch_list = [ ch_list ]
+            VDD_time = []
+            VDD_voltage = []
+            VSS_time = []
+            VSS_voltage = []
+            compliance_literals = []
+            compliance_data = []
+            meas_times = []
+            meas_pts = []
+            meas_interval = []
+            meas_averaging = []
+            meas_mode = []
             
+            trd = TestInfo.trd
+            pts_per_meas = TestInfo.pts_per_meas
+            for time_entry, vdd_entry, vss_entry, label_entry, comp_entry in zip(times, labels, vdd_voltage, vss_voltage, compliance):
+                time_val = time_entry.get().strip()  # Clean time input
+                vdd_val = vdd_entry.get().strip()  # Clean VDD voltage
+                vss_val = vss_entry.get().strip()  # Clean VSS voltage
+                label_val = label_entry.get().strip().lower()  # Convert label to lowercase for searching
+                comp_val = comp_entry.get().strip().lower()
+
+                if time_val.replace(".", "", 1).isdigit():  # Ensure time is numeric
+                    time_val = float(time_val)  # Convert to float
+
+                    # If VDD is NOT "X", store time and voltage for VDD
+                    if vdd_val != "X":
+                        VDD_time.append(time_val)
+                        VDD_voltage.append(float(vdd_val) if vdd_val.replace(".", "", 1).isdigit() else np.nan)
+
+                    # If VSS is NOT "X", store time and voltage for VSS
+                    if vss_val != "X":
+                        VSS_time.append(time_val)
+                        VSS_voltage.append(float(vss_val) if vss_val.replace(".", "", 1).isdigit() else np.nan)
+
+                    # Handle compliance
+                    if "comp" in label_val:
+                        if comp_val == "1ua":
+                            compliance_data.append((time_val, wgc.WGFMU_MEASURE_CURRENT_RANGE_1UA))
+                        elif comp_val == "10ua":
+                            compliance_data.append((time_val, wgc.WGFMU_MEASURE_CURRENT_RANGE_10UA))
+                        elif comp_val == "100ua":
+                            compliance_data.append((time_val, wgc.WGFMU_MEASURE_CURRENT_RANGE_100UA))
+                        elif comp_val == "1ma":
+                            compliance_data.append((time_val, wgc.WGFMU_MEASURE_CURRENT_RANGE_1MA))
+                        elif comp_val == "10ma":
+                            compliance_data.append((time_val, wgc.WGFMU_MEASURE_CURRENT_RANGE_10MA))
+                    
+                    compliance_literals.append(0 if comp_val == "0" else comp_val)
+
+
+                    # Handle measurement events
+                    if "meas" in label_val:
+                        meas_times.append(time_val)
+                        meas_pts.append(pts_per_meas)  # Default is 1
+                        meas_interval.append(trd)  # Reading duration
+                        meas_averaging.append(trd / 2)  # Averaging period
+                        meas_mode.append(wgc.WGFMU_MEASURE_EVENT_DATA_AVERAGED)  # Default averaged mode
+
+            # Save the cleaned-up waveform data
+            waveform_data = {
+                "Labels": [entry.get().strip() for entry in labels],
+                "VDD Time": VDD_time,
+                "VSS Time": VSS_time,
+                "VDD Voltage": VDD_voltage,
+                "VSS Voltage": VSS_voltage,
+                "Compliance Literals": compliance_literals,
+                "Compliance Data": compliance_data,
+                "Measurement Data": (meas_times, meas_pts, meas_interval, meas_averaging, meas_mode)
+            }
+
+            meas_data = waveform_data["Measurement Data"]
+            comp_data = waveform_data["Compliance Data"]
+            VDD_waveform = [waveform_data["VDD Time"], waveform_data["VDD Voltage"]]
+            VSS_waveform = [waveform_data["VSS Time"], waveform_data["VSS Voltage"]]
+
+            timestamp = time.perf_counter()
+            if (TestInfo.VDD_WGFMU == 1):
+                vector_names = [ self.cstr( f"ch{channel}_{patt_name}_{timestamp}" ) for channel in self.wgfmus]
+                for ch_ind, channel in enumerate(self.wgfmus):
+                    vector_name = vector_names[ch_ind]
+
+                    # Create pattern for this channel
+                    self.wg.WGFMU_createPattern(vector_name, self.cf(0))
+
+                    # Select waveform data based on channel index
+                    if ch_ind == 0:  # First channel (VDD)
+                        drive_times = VDD_waveform[0]
+                        drive_voltages = VDD_waveform[1]
+                    elif ch_ind == 1:  # Second channel (VSS)
+                        drive_times = VSS_waveform[0]
+                        drive_voltages = VSS_waveform[1]
+                    else:
+                        print(f"⚠️ Unexpected channel index {ch_ind}, skipping...")
+                        continue  # Skip unexpected channels
+
+                    # Apply waveform data to the current channel
+                    for time_idx in range(len(drive_times)):
+                        time_pt = self.cf(drive_times[time_idx])
+                        voltage = self.cf(drive_voltages[time_idx])
+
+                        self.wg.WGFMU_setVector(vector_name, time_pt, voltage)
+
+                    
+                    # Add ranging events if they were included
+                    if (len(comp_data) > 0):
+                        ranging_times = comp_data[0]
+                        ranging_settings = comp_data[1]
+                        
+                        for ind in range(len(ranging_times)):
+                            range_time = self.cf(ranging_times[ind] )
+                            range_setting =  ranging_settings[ind] 
+                            range_event_name = self.cstr( f"ch{channel}_range{ind}_{timestamp}")
+                            
+                            self.wg.WGFMU_setRangeEvent(vector_name, range_event_name, range_time , range_setting) #as soon as the measurement is done, change the current range we can drive enough current
+                            
+
+                    
+                    # Add measurement events if they're included
+                    if len( meas_data ) > 0 :
+                        meas_times = meas_data[0]
+                        meas_pts = meas_data[1]
+                        meas_intervals = meas_data[2]
+                        meas_averaging_times = meas_data[3]
+                        meas_modes = meas_data[4]
+                        
+                        for ind in range(len( meas_times ) ):
+                            time_pt = self.cf( meas_times[ind] )
+                            points = int( meas_pts[ind] )
+                            interval = self.cf( meas_intervals[ind] )
+                            averaging_time = self.cf( meas_averaging_times[ind] )
+                            mode = int( meas_modes[ind] )
+                            meas_event_name = self.cstr( f"ch{channel}_meas{ind}_{timestamp}" )
+                            
+                            #print( f"{vector_name.value}  {meas_event_name.value}  {time_pt}  {points}  {interval}  {averaging_time}  {mode}")
+                            self.wg.WGFMU_setMeasureEvent( vector_name , meas_event_name , time_pt , points , interval , averaging_time , mode )
+                    
+                    # if add_to_seq: #Legacy Code We can add this in later if we really need
+                    #     self.wg.WGFMU_addSequence( channel , vector_name , self.cf( copies ) ) # add copies copies of the pattern "pulse" to the channel
+                    
+                    return vector_name
+            else:
+                vector_names = [ self.cstr( f"ch{self.wgfmus[1]}_{patt_name}_{timestamp}" ), self.cstr( f"ch{self.wgfmus[0]}_{patt_name}_{timestamp}" )]
+                for ch_ind, channel in enumerate(self.wgfmus):
+                    vector_name = vector_names[ch_ind]
+
+                    # Create pattern for this channel
+                    self.wg.WGFMU_createPattern(vector_name, self.cf(0))
+
+                    # Select waveform data based on channel index
+                    if ch_ind == 0:  # First channel (VSS)
+                        drive_times = VSS_waveform[0]
+                        drive_voltages = VSS_waveform[1]
+                    elif ch_ind == 1:  # Second channel (VDD)
+                        drive_times = VDD_waveform[0]
+                        drive_voltages = VDD_waveform[1]
+                    else:
+                        print(f"⚠️ Unexpected channel index {ch_ind}, skipping...")
+                        continue  # Skip unexpected channels
+
+                    # Apply waveform data to the current channel
+                    for time_idx in range(len(drive_times)):
+                        time_pt = self.cf(drive_times[time_idx])
+                        voltage = self.cf(drive_voltages[time_idx])
+
+                        self.wg.WGFMU_setVector(vector_name, time_pt, voltage)
+
+                    
+                    # Add ranging events if they were included
+                    if (len(comp_data) > 0):
+                        ranging_times = comp_data[0]
+                        ranging_settings = comp_data[1]
+                        
+                        for ind in range(len(ranging_times)):
+                            range_time = self.cf(ranging_times[ind] )
+                            range_setting =  ranging_settings[ind] 
+                            range_event_name = self.cstr( f"ch{channel}_range{ind}_{timestamp}")
+                            
+                            self.wg.WGFMU_setRangeEvent(vector_name, range_event_name, range_time , range_setting) #as soon as the measurement is done, change the current range we can drive enough current
+                            
+
+                    
+                    # Add measurement events if they're included
+                    if len( meas_data ) > 0 :
+                        meas_times = meas_data[0]
+                        meas_pts = meas_data[1]
+                        meas_intervals = meas_data[2]
+                        meas_averaging_times = meas_data[3]
+                        meas_modes = meas_data[4]
+                        
+                        for ind in range(len( meas_times ) ):
+                            time_pt = self.cf( meas_times[ind] )
+                            points = int( meas_pts[ind] )
+                            interval = self.cf( meas_intervals[ind] )
+                            averaging_time = self.cf( meas_averaging_times[ind] )
+                            mode = int( meas_modes[ind] )
+                            meas_event_name = self.cstr( f"ch{channel}_meas{ind}_{timestamp}" )
+                            
+                            #print( f"{vector_name.value}  {meas_event_name.value}  {time_pt}  {points}  {interval}  {averaging_time}  {mode}")
+                            self.wg.WGFMU_setMeasureEvent( vector_name , meas_event_name , time_pt , points , interval , averaging_time , mode )
+                    
+                    # if add_to_seq: #Legacy Code We can add this in later if we really need
+                    #     self.wg.WGFMU_addSequence( channel , vector_name , self.cf( copies ) ) # add copies copies of the pattern "pulse" to the channel
+                    
+                    return vector_name
+        
+        # HERES THE NORMAL FUNCTION NOT USING AN ALTERNATE WAVEFORM
+        #
+        #
+        #
+        #
+        #
+        #
+        meas_data = TestInfo.waveform_data["Measurement Data"]
+        comp_data = TestInfo.waveform_data["Compliance Data"]
+        VDD_waveform = [TestInfo.waveform_data["VDD Time"], TestInfo.waveform_data["VDD Voltage"]]
+        VSS_waveform = [TestInfo.waveform_data["VSS Time"], TestInfo.waveform_data["VSS Voltage"]]
+
         timestamp = time.perf_counter()
-        vector_names = [ cstr( f"ch{channel}_{pattern_name}_{timestamp}" ) for channel in ch_list ]
-        for ch_ind in range(len(ch_list)):
-            vector_name = vector_names[ch_ind]
-            channel = ch_list[ch_ind]
-            #print( f"Creating pattern {vector_name} for channel {channel}...")
-            self.wg.WGFMU_createPattern( vector_name , cf(0) )
-            
-            drive_times = drive_data[0]
-            drive_voltages = drive_data[1]
-            
-            
-            for ind in range(len( drive_times ) ):
-                time_pt = cf( drive_times[ind] )
-                voltage = cf( drive_voltages[ind] )
-                #print(f"Vector: {vector_name.value}    T {time_pt.value}    V {voltage.value:.4g}")
-                
-                self.wg.WGFMU_setVector( vector_name , time_pt , voltage )
-            
-            # Add ranging events if they were included
-            if len( ranging_data ) > 0:
-                ranging_times = ranging_data[0]
-                ranging_settings = ranging_data[1]
-                
-                for ind in range(len( ranging_times ) ):
-                    range_time = cf( ranging_times[ind] )
-                    range_setting =  ranging_settings[ind] 
-                    range_event_name = cstr( f"ch{channel}_range{ind}_{timestamp}")
-                    
-                    self.wg.WGFMU_setRangeEvent(vector_name, range_event_name, range_time , range_setting) #as soon as the measurement is done, change the current range we can drive enough current
-                    
+        if (TestInfo.VDD_WGFMU == 1):
+            vector_names = [ self.cstr( f"ch{channel}_{patt_name}_{timestamp}" ) for channel in self.wgfmus]
+            for ch_ind, channel in enumerate(self.wgfmus):
+                vector_name = vector_names[ch_ind]
 
-            
-            # Add measurement events if they're included
-            if len( meas_data ) > 0 :
-                meas_times = meas_data[0]
-                meas_pts = meas_data[1]
-                meas_intervals = meas_data[2]
-                meas_averaging_times = meas_data[3]
-                meas_modes = meas_data[4]
-                #meas_event_names = meas_data[5]
+                # Create pattern for this channel
+                self.wg.WGFMU_createPattern(vector_name, self.cf(0))
+
+                # Select waveform data based on channel index
+                if ch_ind == 0:  # First channel (VDD)
+                    drive_times = VDD_waveform[0]
+                    drive_voltages = VDD_waveform[1]
+                elif ch_ind == 1:  # Second channel (VSS)
+                    drive_times = VSS_waveform[0]
+                    drive_voltages = VSS_waveform[1]
+                else:
+                    print(f"⚠️ Unexpected channel index {ch_ind}, skipping...")
+                    continue  # Skip unexpected channels
+
+                # Apply waveform data to the current channel
+                for time_idx in range(len(drive_times)):
+                    time_pt = self.cf(drive_times[time_idx])
+                    voltage = self.cf(drive_voltages[time_idx])
+
+                    self.wg.WGFMU_setVector(vector_name, time_pt, voltage)
+
                 
-                for ind in range(len( meas_times ) ):
-                    time_pt = cf( meas_times[ind] )
-                    points = int( meas_pts[ind] )
-                    interval = cf( meas_intervals[ind] )
-                    averaging_time = cf( meas_averaging_times[ind] )
-                    mode = int( meas_modes[ind] )
-                    meas_event_name = cstr( f"ch{channel}_meas{ind}_{timestamp}" )
+                # Add ranging events if they were included
+                if (len(comp_data) > 0):
+                    ranging_times = comp_data[0]
+                    ranging_settings = comp_data[1]
                     
-                    #print( f"{vector_name.value}  {meas_event_name.value}  {time_pt}  {points}  {interval}  {averaging_time}  {mode}")
-                    self.wg.WGFMU_setMeasureEvent( vector_name , meas_event_name , time_pt , points , interval , averaging_time , mode )
-            
-            if add_to_sequence:
-                self.wg.WGFMU_addSequence( channel , vector_name , cf( num_copies ) ) # add num_copies copies of the pattern "pulse" to the channel
-            
-            return vector_name
+                    for ind in range(len(ranging_times)):
+                        range_time = self.cf(ranging_times[ind] )
+                        range_setting =  ranging_settings[ind] 
+                        range_event_name = self.cstr( f"ch{channel}_range{ind}_{timestamp}")
+                        
+                        self.wg.WGFMU_setRangeEvent(vector_name, range_event_name, range_time , range_setting) #as soon as the measurement is done, change the current range we can drive enough current
+                        
+
+                
+                # Add measurement events if they're included
+                if len( meas_data ) > 0 :
+                    meas_times = meas_data[0]
+                    meas_pts = meas_data[1]
+                    meas_intervals = meas_data[2]
+                    meas_averaging_times = meas_data[3]
+                    meas_modes = meas_data[4]
+                    
+                    for ind in range(len( meas_times ) ):
+                        time_pt = self.cf( meas_times[ind] )
+                        points = int( meas_pts[ind] )
+                        interval = self.cf( meas_intervals[ind] )
+                        averaging_time = self.cf( meas_averaging_times[ind] )
+                        mode = int( meas_modes[ind] )
+                        meas_event_name = self.cstr( f"ch{channel}_meas{ind}_{timestamp}" )
+                        
+                        #print( f"{vector_name.value}  {meas_event_name.value}  {time_pt}  {points}  {interval}  {averaging_time}  {mode}")
+                        self.wg.WGFMU_setMeasureEvent( vector_name , meas_event_name , time_pt , points , interval , averaging_time , mode )
+                
+                # if add_to_seq: #Legacy Code We can add this in later if we really need
+                #     self.wg.WGFMU_addSequence( channel , vector_name , self.cf( copies ) ) # add copies copies of the pattern "pulse" to the channel
+                
+                return vector_name
+        else:
+            vector_names = [ self.cstr( f"ch{self.wgfmus[1]}_{patt_name}_{timestamp}" ), self.cstr( f"ch{self.wgfmus[0]}_{patt_name}_{timestamp}" )]
+            for ch_ind, channel in enumerate(self.wgfmus):
+                vector_name = vector_names[ch_ind]
+
+                # Create pattern for this channel
+                self.wg.WGFMU_createPattern(vector_name, self.cf(0))
+
+                # Select waveform data based on channel index
+                if ch_ind == 0:  # First channel (VSS)
+                    drive_times = VSS_waveform[0]
+                    drive_voltages = VSS_waveform[1]
+                elif ch_ind == 1:  # Second channel (VDD)
+                    drive_times = VDD_waveform[0]
+                    drive_voltages = VDD_waveform[1]
+                else:
+                    print(f"⚠️ Unexpected channel index {ch_ind}, skipping...")
+                    continue  # Skip unexpected channels
+
+                # Apply waveform data to the current channel
+                for time_idx in range(len(drive_times)):
+                    time_pt = self.cf(drive_times[time_idx])
+                    voltage = self.cf(drive_voltages[time_idx])
+
+                    self.wg.WGFMU_setVector(vector_name, time_pt, voltage)
+
+                
+                # Add ranging events if they were included
+                if (len(comp_data) > 0):
+                    ranging_times = comp_data[0]
+                    ranging_settings = comp_data[1]
+                    
+                    for ind in range(len(ranging_times)):
+                        range_time = self.cf(ranging_times[ind] )
+                        range_setting =  ranging_settings[ind] 
+                        range_event_name = self.cstr( f"ch{channel}_range{ind}_{timestamp}")
+                        
+                        self.wg.WGFMU_setRangeEvent(vector_name, range_event_name, range_time , range_setting) #as soon as the measurement is done, change the current range we can drive enough current
+                        
+
+                
+                # Add measurement events if they're included
+                if len( meas_data ) > 0 :
+                    meas_times = meas_data[0]
+                    meas_pts = meas_data[1]
+                    meas_intervals = meas_data[2]
+                    meas_averaging_times = meas_data[3]
+                    meas_modes = meas_data[4]
+                    
+                    for ind in range(len( meas_times ) ):
+                        time_pt = self.cf( meas_times[ind] )
+                        points = int( meas_pts[ind] )
+                        interval = self.cf( meas_intervals[ind] )
+                        averaging_time = self.cf( meas_averaging_times[ind] )
+                        mode = int( meas_modes[ind] )
+                        meas_event_name = self.cstr( f"ch{channel}_meas{ind}_{timestamp}" )
+                        
+                        #print( f"{vector_name.value}  {meas_event_name.value}  {time_pt}  {points}  {interval}  {averaging_time}  {mode}")
+                        self.wg.WGFMU_setMeasureEvent( vector_name , meas_event_name , time_pt , points , interval , averaging_time , mode )
+                
+                # if add_to_seq: #Legacy Code We can add this in later if we really need
+                #     self.wg.WGFMU_addSequence( channel , vector_name , self.cf( copies ) ) # add copies copies of the pattern "pulse" to the channel
+                
+                return vector_name
