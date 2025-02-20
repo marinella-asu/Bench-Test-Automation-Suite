@@ -9,7 +9,11 @@ def IVSweep(
     nsteps=101,
     connect_first=True,
     disconnect_after=True,
-    plot_data = False
+    plot_data = False,
+    PULSED_SWEEP = False,
+    mode = 3,
+    t_pulse = None,
+    t_period = None
 ):
     """
     Performs an IV sweep on a specified SMU channel with visualization and result printing.
@@ -39,17 +43,23 @@ def IVSweep(
     
     # Perform the IV sweep using the core SMU functionality
     print(f"Starting IV Sweep on SMU {smu_nums}...")
-    results = self.smu_meas_sweep(
-        smu_nums,
-        vstart=vstart,
-        vstop=vstop,
-        nsteps=nsteps,
-        mode=3,
-        icomp=icomp,
-        num_averaging_samples=1,
-        connect_first=connect_first,
-        disconnect_after=disconnect_after
-    )
+    if not PULSED_SWEEP:
+        results = self.smu_meas_sweep( smu_nums , vstart=vstart , vstop=vstop , nsteps=nsteps , mode=mode, icomp=icomp, num_averaging_samples=1 , connect_first=True, disconnect_after=True , plot_data=True)
+    else:
+        results = self.smu_meas_sweep_pulsed(
+                                smu_nums,
+                                vstart=vstart, 
+                                vstop=vstop, 
+                                t_pulse=t_pulse,
+                                t_period=t_period,
+                                nsteps=nsteps, 
+                                mode=mode,
+                                icomp=icomp,
+                                num_averaging_samples=1,
+                                connect_first=True,
+                                disconnect_after=True ,
+                                plot_data=True,
+                                )
     print("Finished, Now returning results")
     if len(smu_nums) == 1:
         # Extract voltages, currents, and timestamps

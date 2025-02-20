@@ -16,7 +16,7 @@ class WGFMU:
         Args:
             instrument: PyVISA instrument instance shared with SMU.
         """
-        self.instrument = instrument
+        self.b1500 = instrument
         self.wgfmus = wgfmus
         # self.wg = self._load_wgfmu_library() UNCHECK THIS WHEN YOU ARE ON THE ACTUAL MACHINE THIS JSUT DOESNT WORK ON MY LAPTOP SO ITS COMMENTED OUT
 

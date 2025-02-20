@@ -1,0 +1,5 @@
+Start	0.0	0.0	0 0
+Ramp Up	1.0	1.0	1.8	1ua
+Hold	2.0	2.0	1.8 0
+Ramp Down	3.0	3.0	0 10ua
+End	4.0	4.0	0 0
