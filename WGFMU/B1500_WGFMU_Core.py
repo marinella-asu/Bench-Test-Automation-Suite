@@ -6,7 +6,7 @@ import ctypes as ct # Convert between python and C data types (needed for WGFMU)
 import numpy as np
 import time
 import matplotlib.pyplot as plt
-
+import wgfmu_consts as wgc
 
 class WGFMU:
     def __init__(self, instrument, wgfmus):
@@ -16,9 +16,19 @@ class WGFMU:
         Args:
             instrument: PyVISA instrument instance shared with SMU.
         """
-        self.instrument = instrument
+        self.b1500 = instrument
         self.wgfmus = wgfmus
         # self.wg = self._load_wgfmu_library() UNCHECK THIS WHEN YOU ARE ON THE ACTUAL MACHINE THIS JSUT DOESNT WORK ON MY LAPTOP SO ITS COMMENTED OUT
+
+        self.wgc = wgc 
+        
+        # heres your Current Range Constants its just self.c then your range like 1ua or 10ma
+        self.c1ua   = wgc.WGFMU_MEASURE_CURRENT_RANGE_1UA 
+        self.c10ua  = wgc.WGFMU_MEASURE_CURRENT_RANGE_10UA
+        self.c100ua = wgc.WGFMU_MEASURE_CURRENT_RANGE_100UA
+        self.c1ma   = wgc.WGFMU_MEASURE_CURRENT_RANGE_1MA
+        self.c10ma  = wgc.WGFMU_MEASURE_CURRENT_RANGE_10MA
+
         self.load_methods()
 
 

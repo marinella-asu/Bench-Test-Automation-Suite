@@ -1,0 +1,13 @@
+Start_Comp
+Set
+Settle_Begin
+Read
+Set_Zero_Comp
+Program
+Set
+Program_Stop
+Program_Zero_Comp
+Set_Second
+Settle_Begin
+Read
+Set_Zero
