@@ -9,35 +9,67 @@ parameters = {
     "Test Number": "ask",
     "Die Number": 1,
     "Device Number": 67,
-    "Read Voltage": 100,
-    "Compliance Current": 100,
-    "Pulse Voltage": 100,
-    "Pulse Duration": 101,
-    "Probe Light": "ON",
     "Waveform Format": "Reram",  # Loads "Reram.txt"
     "Waveform": "Evan_Reram_4",
-    "Waveform Editor": "ask",   
+    # "Waveform Editor": "ask",   
     "VDD WGFMU": 1,
     "VSS WGFMU": 2,
+    "Interval": 1.5e-3,
+    "data points": 300,
+    "v rd": 1
 }
 
 
 # Initialize Unified B1500 (includes parameter validation)
 b1500 = B1500(unit_label = 'A', parameters=parameters)
 
-b1500.wgfmu.Resalat_Program_and_Retention(b1500, b1500.test_info)
+#Gate is SMU2
+#Drain is SMU4
 
+smu_numD = 1
+smu_numG = 4 
+smu_numS = 3
+smu_numB = 2
 
+results_read = b1500.smu.smu_meas_sample_multi_term( smu_numD = smu_numD, 
+                                    smu_numG = smu_numG, 
+                                    smu_numS = smu_numS, 
+                                    smu_numB = smu_numB, 
+                                    vmeasD=0,
+                                    vmeasG=b1500.test_info.v_rd,
+                                    vmeasS=0, 
+                                    vmeasB=0,
+                                    icompDSB=1e-6, 
+                                    icompG=1e-6,  
+                                    interval=b1500.test_info.Interval,
+                                    pre_bias_time=0, 
+                                    number=b1500.test_info.data_points, 
+                                    disconnect_after=False, 
+                                    plot_results=False)
 
+print(results_read) #I wanna see what format the data is in
+data = b1500.data_clean(b1500, results_read, parameters)
+time_gate = data.get("SMU4_Time", None)
+current_gate = data.get("SMU4_Current", None)
+time_drain = data.get("SMU1_Time", None)
+current_drain = data.get("SMU1_Current", None)
 
+# Create a figure with two subplots
+fig, axs = plt.subplots(2, 1, figsize=(6, 6), sharex=True)
 
+# First plot: Gate Current vs. Time
+axs[0].plot(time_gate, current_gate, marker="o", linestyle="-", label="Gate Current")
+axs[0].set_ylabel("Current (A)", fontsize=10)
+axs[0].legend(fontsize=9, loc="upper right")
+axs[0].grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
 
+# Second plot: Drain Current vs. Time
+axs[1].plot(time_drain, current_drain, marker="o", linestyle="-", label="Drain Current", color="red")
+axs[1].set_xlabel("Time (s)", fontsize=10)
+axs[1].set_ylabel("Current (A)", fontsize=10)
+axs[1].legend(fontsize=9, loc="upper right")
+axs[1].grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
 
-
-
-
-# print(b1500.test_info.waveform_data)
-# data = "NCI+01.5216E-03,WCV+005.950E-03,NCT+2.14069E+00,NCI+00.7674E-03,WCV+005.850E-03,NCT+2.14596E+00,NCI+02.8802E-03,WCV+005.750E-03,NCT+2.15123E+00,NCI+01.6124E-03,WCV+005.650E-03,NCT+2.17546E+00,NCI+00.4898E-03,WCV+005.550E-03,NCT+2.18076E+00,NCI+01.7162E-03,WCV+005.450E-03,NCT+2.19226E+00,NCI+0.51262E-03,WCV+005.350E-03,NCT+2.24438E+00,NCI+01.6422E-03,WCV+005.250E-03,NCT+2.24967E+00,NCI+01.8800E-03,WCV+005.150E-03,NCT+2.27388E+00,NCI+00.6484E-03,WCV+005.050E-03,NCT+2.27912E+00,NCI+02.6184E-03,WCV+004.950E-03,NCT+2.28441E+00,NCI+01.4386E-03,WCV+004.850E-03,NCT+2.30865E+00,NCI+00.2606E-03,WCV+004.750E-03,NCT+2.31392E+00,NCI+01.5492E-03,WCV+004.650E-03,NCT+2.32544E+00,NCI+0.27752E-03,WCV+004.550E-03,NCT+2.37755E+00,NCI+01.4506E-03,WCV+004.450E-03,NCT+2.38282E+00,NCI+01.7404E-03,WCV+004.350E-03,NCT+2.40807E+00,NCI+00.0180E-03,WCV+004.250E-03,NCT+2.41333E+00,NCI+01.3074E-03,WCV+004.150E-03,NCT+2.41861E+00,NCI+00.4890E-03,WCV+004.050E-03,NCT+2.44284E+00,NCI+00.2536E-03,WCV+003.950E-03,NCT+2.44811E+00,NCI+01.1632E-03,WCV+003.850E-03,NCT+2.45965E+00,NCI+0.23376E-03,WCV+003.750E-03,NCT+2.49862E+00,NCI+1.02970E-03,WCV+003.625E-03,NCT+2.52990E+00,NCI+01.2644E-03,WCV+003.525E-03,NCT+2.53518E+00,NCI+00.4360E-03,WCV+003.425E-03,NCT+2.55939E+00,NCI+00.1468E-03,WCV+003.325E-03,NCT+2.56441E+00,NCI+01.1520E-03,WCV+003.225E-03,NCT+2.60885E+00,NCI+00.0042E-03,WCV+003.125E-03,NCT+2.62011E+00,NCI-0.55400E-03,WCV+003.025E-03,NCT+2.62535E+00,NCI-0.10468E-03,WCV+002.925E-03,NCT+2.66452E+00,NCI+1.01744E-03,WCV+002.825E-03,NCT+2.69771E+00,NCI+01.0442E-03,WCV+002.725E-03,NCT+2.70927E+00,NCI-0.07656E-03,WCV+002.625E-03,NCT+2.74844E+00,NCI+0.74756E-03,WCV+002.525E-03,NCT+2.79346E+00,NCI+00.5994E-03,WCV+002.425E-03,NCT+2.81003E+00,NCI+00.4438E-03,WCV+002.325E-03,NCT+2.83427E+00,NCI+00.8364E-03,WCV+002.225E-03,NCT+2.85851E+00,NCI-00.3392E-03,WCV+002.125E-03,NCT+2.87004E+00,NCI-0.83764E-03,WCV+002.025E-03,NCT+2.90764E+00,NCI-0.60890E-03,WCV+001.925E-03,NCT+2.94711E+00,NCI+0.90518E-03,WCV+001.825E-03,NCT+2.95825E+00,NCI-076.292E-06,WCV+001.725E-03,NCT+2.99997E+00,NCI+0.92872E-03,WCV+001.625E-03,NCT+3.03303E+00,NCI+00.9346E-03,WCV+001.525E-03,NCT+3.03831E+00,NCI-00.3536E-03,WCV+001.425E-03,NCT+3.04985E+00,NCI+0.84354E-03,WCV+001.325E-03,NCT+3.08913E+00,NCI-0.49364E-03,WCV+001.200E-03,NCT+3.09441E+00,NCI+0.77824E-03,WCV+001.100E-03,NCT+3.13196E+00,NCI+0.43414E-03,WCV+001.000E-03,NCT+3.15097E+00,NCI+00.5146E-03,WCV+000.900E-03,NCT+3.16854E+00,NCI-00.5406E-03,WCV+000.800E-03,NCT+3.18509E+00,NCI-00.4204E-03,WCV+000.700E-03,NCT+3.20933E+00,NCI-00.5304E-03,WCV+000.600E-03,NCT+3.23358E+00,NCI+00.5388E-03,WCV+000.500E-03,NCT+3.25884E+00,NCI-00.5654E-03,WCV+000.400E-03,NCT+3.28415E+00,NCI+00.3988E-03,WCV+000.300E-03,NCT+3.30173E+00,NCI-00.5152E-03,WCV+000.200E-03,NCT+3.32037E+00,NCI-01.6604E-03,WCV+000.100E-03,NCT+3.33187E+00"
-
-# data = b1500.data_clean(b1500, data, parameters)
-# voltage_smu1 = data.get("SMU1_Voltage", None)
+# Adjust spacing to prevent overlap
+plt.tight_layout()
+plt.show()

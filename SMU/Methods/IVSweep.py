@@ -61,34 +61,6 @@ def IVSweep(
                                 plot_data=True,
                                 )
     print("Finished, Now returning results")
-    if len(smu_nums) == 1:
-        # Extract voltages, currents, and timestamps
-        times = results[0]
-        voltages = results[1]
-        currents = results[2]
-
-        # Print results
-        print(f"IV Sweep Completed on SMU {smu_nums}.")
-        print(f"Start Voltage: {vstart} V, Stop Voltage: {vstop} V")
-        print(f"Compliance Current: {icomp} A")
-        print(f"Number of Steps: {nsteps}")
-        print("Results:")
-        for i, (v, i_current, t) in enumerate(zip(voltages, currents, times)):
-            print(f"Step {i+1}: Voltage={v:.3f} V, Current={i_current:.3e} A, Time={t:.3f} s")
-
-        # Plot results if requested
-        if plot_data:
-            plt.figure(figsize=(8, 6))
-            plt.plot(voltages, currents, marker="o", linestyle="-", color="b")
-            plt.title(f"IV Sweep Results for SMU {smu_nums}")
-            plt.xlabel("Voltage (V)")
-            plt.ylabel("Current (A)")
-            plt.grid(True)
-            plt.show()
-    
-
-    
-
     # Return the results as a dictionary
     return results
 

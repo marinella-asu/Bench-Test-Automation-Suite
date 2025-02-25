@@ -97,7 +97,7 @@ def Resalat_Program_and_Retention(self, B1500, TestInfo):
     if hasattr(TestInfo, "vrst"):
         vrst = TestInfo.vrst
 
-    t_prg = 2000e-6  # Default for t_prg: Set a t_prg parameter if you want this to be different
+    t_prg = 1.9e-3  # Default for t_prg: Set a t_prg parameter if you want this to be different
     if hasattr(TestInfo, "t_prg"):
         t_prg = TestInfo.t_prg
 
@@ -131,38 +131,37 @@ def Resalat_Program_and_Retention(self, B1500, TestInfo):
     read_initial = B1500.smu.smu_meas_spot_4termininal(smu_numD=4, smu_numG=1, smu_numS=3, smu_numB=2, VDbias = v_rd, VGbias = 0,VSbias = 0, VBbias = 0 , vmeas=0.1 , icomp=100e-3 , reset_timer=True , disconnect_after=True )
     current_initial = read_initial[2]
     time_initial = read_initial[0]
-    cond_initial = current_initial/1 # # IV sweep
-            # result_iv = B1500.smu.IVSweep(
-            #     smu_nums = 4,
-            #     vstart=0,
-            #     vstop=1,
-            #     nsteps=101,
-            #     mode=1,
-            #     icomp=100e-3,
-            #     num_averaging_samples=1,
-            #     connect_first=True,
-            #     disconnect_after=True,
-            #     plot_data=False,
-            #     vmax_override=True
-            # )
-
-            # times_iv = result_iv[0]
-            # voltage_iv = result_iv[1]
-            # currents_iv = result_iv[2]
-            
-            # plt.figure()
-            # plt.plot(voltage_iv, currents_iv)
-            # plt.xlabel("Voltage (V)")
-            # plt.ylabel("Current (A)")
-            # plt.show()
-            
-            # print(f'Finished IV sweep for {gtarget*1e9:.4g} nS.')u_numG=1, smu_numS=3, smu_numB=4,VDbias = v_rd, VGbias = 0,VSbias = 0, VBbias = 0 , vmeas=0.1 , icomp=100e-3 , reset_timer=True , disconnect_after=True )
-
-    current_initial = read_initial[2]
-    time_initial = read_initial[0]
-    cond_initial = current_initial/1
+    cond_initial = current_initial/1 
     g_d = cond_initial
     print(f"\nTHE INITIAL CONDUCTANCE IS: {g_d*1e9}nS")
+    
+    # # IV sweep
+    # result_iv = B1500.smu.IVSweep(
+    #     smu_nums = 4,
+    #     vstart=0,
+    #     vstop=1,
+    #     nsteps=101,
+    #     mode=1,
+    #     icomp=100e-3,
+    #     num_averaging_samples=1,
+    #     connect_first=True,
+    #     disconnect_after=True,
+    #     plot_data=False,
+    #     vmax_override=True
+    # )
+
+    # times_iv = result_iv[0]
+    # voltage_iv = result_iv[1]
+    # currents_iv = result_iv[2]
+    
+    # plt.figure()
+    # plt.plot(voltage_iv, currents_iv)
+    # plt.xlabel("Voltage (V)")
+    # plt.ylabel("Current (A)")
+    # plt.show()
+    
+    # print(f'Finished IV sweep for {gtarget*1e9:.4g} nS.')u_numG=1, smu_numS=3, smu_numB=4,VDbias = v_rd, VGbias = 0,VSbias = 0, VBbias = 0 , vmeas=0.1 , icomp=100e-3 , reset_timer=True , disconnect_after=True )
+
 
     # if g_d*1e9 > max_gtarget*1e9:
     #     print("reset device first")
@@ -176,13 +175,12 @@ def Resalat_Program_and_Retention(self, B1500, TestInfo):
     #     plt.show()
     #     plt.close()    
 
-    # Initialize a list to store the pulse information
-    pulse_data = []
-    results = B1500.connection.read()
+    
+    # results = B1500.connection.read()
     # B1500.data_clean(B1500, results, B1500.parameters)
 
-
-
+    # Initialize a list to store the pulse information
+    pulse_data = []
     ##LOOP THROUGH GTARGETS##
     for i, gtarget in enumerate(gtargets):
         print(f"\n\nTHE TARGET CONDUCTANCE IS:{gtarget*1e9}nS\n\n\n")
@@ -366,9 +364,9 @@ def Resalat_Program_and_Retention(self, B1500, TestInfo):
             #                                         disconnect_after=False, 
             #                                         plot_results=False )
             print("\Starting the 5 min Read\n")
-            smu_numD = 1
-            smu_numG = 4
-            smu_numS = 3
+            smu_numD = 1  
+            smu_numG = 4 
+            smu_numS = 3 
             smu_numB = 2
             
             results_read = B1500.smu.smu_meas_sample_multi_term_int( smu_numD = smu_numD, 

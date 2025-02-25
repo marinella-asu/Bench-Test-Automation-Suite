@@ -1,6 +1,7 @@
+import numpy as np
 def smu_meas_spot_4terminal(self, smu_numD, smu_numG, smu_numS, smu_numB, 
                             VDbias=0.1, VGbias=0, VSbias=0, VBbias=0, 
-                            vmeas=0.1, icomp=100e-3, reset_timer=True, disconnect_after=True):
+                            vmeas=0.1, icomp=100e-3, reset_timer=True, disconnect_after=True, clear_settings=True, activate_smus=True):
     """
     Performs a 4-terminal spot measurement.
 
@@ -34,8 +35,8 @@ def smu_meas_spot_4terminal(self, smu_numD, smu_numG, smu_numS, smu_numB,
     # Select high-resolution ADC
     self.b1500.write(f"AAD {smu_chD},1")  
 
-    # Connect SMUs
-    self.b1500.write(f"CN {smu_chD},{smu_chG},{smu_chS},{smu_chB}")  
+    if activate_smus:
+        self.b1500.write(f"CN {smu_chD},{smu_chG},{smu_chS},{smu_chB}")  # Connect SMUs
 
     # Apply bias voltages
     self.b1500.write(f"DV {smu_chD},0,{VDbias},100e-3")  
@@ -57,8 +58,10 @@ def smu_meas_spot_4terminal(self, smu_numD, smu_numG, smu_numS, smu_numB,
     self.b1500.write(f"TTIV {smu_chD},0,0")  
     self.b1500.write("TSQ")  
 
-    # Zero output and disconnect SMUs
-    self.b1500.write(f"DZ {smu_chD}")  
+    # If clear_settings is True, remove biases but keep SMUs active
+    if clear_settings:
+        self.b1500.write(f"DZ {smu_chD}")  # Zero output to reset the voltage bias
+        
     if disconnect_after:
         self.b1500.write(f"CL {smu_chD},{smu_chG},{smu_chS},{smu_chB}")  
 

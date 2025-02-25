@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 def smu_meas_sweep(self, smu_nums, vstart=0.0, vstop=0.10, nsteps=51, mode=1, icomp=100e-3, 
                     num_averaging_samples=1, connect_first=True, disconnect_after=True, 
-                    vmax_override=False):
+                    vmax_override=False, plot_data = False):
     """
     Performs a staircase voltage sweep measurement on multiple SMUs.
 
@@ -86,8 +86,26 @@ def smu_meas_sweep(self, smu_nums, vstart=0.0, vstop=0.10, nsteps=51, mode=1, ic
 
         except KeyError as e:
             missing_col = str(e).strip("'")
-            print(f"❌ Missing expected column in processed data: {missing_col}\n Returning data array") # REMEMBER THIS DOES NOT STOP THE PROGRAM ITS JUST A PRINT SO YOU CAN SEE WHAT WENT WRONG WITH YOUR DATA
+            print(f"❌ Missing expected column in processed data: {missing_col}\n Returning data array")
             return data  # Return full dataset if missing columns
+
+        # If plot_data is enabled, generate an I-V plot
+        if plot_data:
+            plt.figure(figsize=(6, 4))  # Keep it compact
+            plt.plot(voltage_values, current_values, marker="o", linestyle="-", label=f"SMU {smu_num}")
+            
+            # Minimal axis labels
+            plt.xlabel("Voltage (V)", fontsize=10)
+            plt.ylabel("Current (A)", fontsize=10)
+            plt.xticks(fontsize=8)
+            plt.yticks(fontsize=8)
+            
+            # Sparse labeling
+            plt.tick_params(axis="both", which="both", direction="in", length=3)
+            
+            plt.legend(fontsize=9, loc="upper left")
+            plt.grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
+            plt.show()
 
     # If only one SMU, return time, voltage, and current separately
     if len(smu_nums) == 1:
