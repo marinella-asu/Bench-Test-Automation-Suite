@@ -25,7 +25,7 @@ parameters = {
 
     #Device Read Values
     "v rd": 1,
-    "Wait": 60, #in seconds
+    "Wait": 2e-3, #in seconds
     "g min tolerance": 0.25e-9, #Change These
     "g max tolerance": 0.75e-9,  #Change These
 
@@ -46,13 +46,13 @@ parameters = {
 # Initialize Unified B1500 (includes parameter validation)
 b1500 = B1500(unit_label = 'A', parameters=parameters)
 
-#This is my probe setup
-smu_numD = 1
-smu_numG = 4
+#This is my probe setup I think (only matters for biasing my device)
+smu_numD = 4
+smu_numG = 2
 smu_numS = 3
-smu_numB = 2
+smu_numB = 1
 
-#First Form device:
+
 b1500.smu.IVSweep(smu_numD, vstart=b1500.test_info.Start, vstop=b1500.test_info.Stop , nsteps=b1500.test_info.Steps, mode=b1500.test_info.Mode, icomp=b1500.test_info.ICompliance, connect_first=True, disconnect_after=True , plot_data=True)
 
 #Next get Initial Conductance:
@@ -82,7 +82,7 @@ while not GLEVEL: #am I leveled off or saturated conductance
     b1500.smu.bias_smu(smu_numB, b1500.test_info.Base_Bias, Icomp=100e-3)
 
     #Wait for a certain amount of time
-    print(f"Waiting for {b1500.test_info.Wait / 60:.2f} minute(s)...")
+    print(f"Waiting for {b1500.test_info.Wait} seconds")
     time.sleep(b1500.test_info.Wait)  # Pauses execution for a variable number of seconds
     print("Done waiting!")
 

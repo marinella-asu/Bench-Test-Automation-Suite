@@ -31,7 +31,7 @@ smu_numG = 4
 smu_numS = 3
 smu_numB = 2
 
-results_read = b1500.smu.smu_meas_sample_multi_term( smu_numD = smu_numD, 
+results_read = b1500.smu.smu_meas_sample_multi_term_int(smu_numD = smu_numD, 
                                     smu_numG = smu_numG, 
                                     smu_numS = smu_numS, 
                                     smu_numB = smu_numB, 
@@ -45,7 +45,8 @@ results_read = b1500.smu.smu_meas_sample_multi_term( smu_numD = smu_numD,
                                     pre_bias_time=0, 
                                     number=b1500.test_info.data_points, 
                                     disconnect_after=False, 
-                                    plot_results=False)
+                                    plot_results=False,
+                                    number = 50)
 
 print(results_read) #I wanna see what format the data is in
 data = b1500.data_clean(b1500, results_read, parameters)
