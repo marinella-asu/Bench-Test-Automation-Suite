@@ -1,6 +1,7 @@
 from B1500.B1500Unified import B1500
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 #What if we had a program that simply biased the Gate and then every 5 minutes it checks the Conductance of the drain and spits out what happens
 #So I can make a program that automatically goes through each voltage and checks and waits until the conductance levels off so I can see change 
@@ -15,12 +16,31 @@ parameters = {
     "Device Number": 67,
     "Waveform Format": "Reram",  # Loads "Reram.txt"
     "Waveform": "Evan_Reram_4",
+
     # "Waveform Editor": "ask",   
     "VDD WGFMU": 1,
     "VSS WGFMU": 2,
     "Interval": 1.5e-3,
     "data points": 300,
-    "v rd": 1
+
+    #Device Read Values
+    "v rd": 1,
+    "Wait": 60, #in seconds
+    "g min tolerance": 0.25e-9, #Change These
+    "g max tolerance": 0.75e-9,  #Change These
+
+    #Bias Values for Programming
+    "Gate Bias": 4,
+    "Drain Bias": 0,
+    "Source Bias": 0,
+    "Base Bias": 0,
+
+    #Initial Sweep Values
+    "Start": 0,
+    "Stop": 1,
+    "Steps": 101,
+    "Mode": 3, #Double Sweep Change to 1 for single
+    "ICompliance": .1
 }
 
 # Initialize Unified B1500 (includes parameter validation)
@@ -33,101 +53,59 @@ smu_numS = 3
 smu_numB = 2
 
 #First Form device:
-B1500.smu.IVSweep(smu_numD, vstart=VSTART , vstop=VSTOP , nsteps=NSTEPS , mode=mode, icomp=ICOMP, connect_first=True, disconnect_after=True , plot_data=True)
+b1500.smu.IVSweep(smu_numD, vstart=b1500.test_info.Start, vstop=b1500.test_info.Stop , nsteps=b1500.test_info.Steps, mode=b1500.test_info.Mode, icomp=b1500.test_info.ICompliance, connect_first=True, disconnect_after=True , plot_data=True)
 
 #Next get Initial Conductance:
-read_initial = B1500.smu.smu_meas_spot_4termininal(smu_numD=4, smu_numG=1, smu_numS=3, smu_numB=2, VDbias = v_rd, VGbias = 0,VSbias = 0, VBbias = 0 , vmeas=0.1 , icomp=100e-3 , reset_timer=True , disconnect_after=True )
+read_initial = B1500.smu.smu_meas_spot_4termininal(smu_numD=4, smu_numG=1, smu_numS=3, smu_numB=2, VDbias = b1500.test_info.v_rd, VGbias = 0,VSbias = 0, VBbias = 0 , vmeas=0.1 , icomp=100e-3 , reset_timer=True , disconnect_after=True )
 current_initial = read_initial[2]
 time_initial = read_initial[0]
 cond_initial = current_initial/1 
 g_d = cond_initial
 print(f"\nTHE INITIAL CONDUCTANCE IS: {g_d*1e9}nS")
 
-#These are the Targets I want to reach and cycle through to see what programmed states I can reach
-gtargets = np.linspace(min_gtarget, max_gtarget, num=STEP)
+initial_run  = True #flag so I can do fast looping
+last_run = False
+GLEVEL = False
 
-#Go through each target
-for i, gtarget in enumerate(gtargets):
+#Now lets loop between Setting a DC Bias on the gate and Reading the conductance after a certain time
+while not GLEVEL: #am I leveled off or saturated conductance
 
-    print(f"\n\nTHE TARGET CONDUCTANCE IS:{gtarget*1e9}nS\n\n\n")
-    g_min = gtarget - 0.25e-9 #This is my range of values Ill accept for my target
-    g_max = gtarget + 0.75e-9
+    if last_run: #am I done? if yes then disconnect all SMUS
+        b1500.smu.disconnect_smu_list([1, 2, 3, 4]) #Hey Clean this up Later
+        break
 
-    while not correct_program: #Have I reached the Target range?
+    g_d = g_d_new
+    #Bias Just the Gate and leave everything else at 0
+    b1500.smu.bias_smu(smu_numD, b1500.test_info.Drain_Bias, Icomp=100e-3)
+    b1500.smu.bias_smu(smu_numG, b1500.test_info.Gate_Bias, Icomp=100e-3)
+    b1500.smu.bias_smu(smu_numS, b1500.test_info.Source_Bias, Icomp=100e-3)
+    b1500.smu.bias_smu(smu_numB, b1500.test_info.Base_Bias, Icomp=100e-3)
 
-        if abs(v_prg)>19 or abs(v_rst)>16: #Stop If I have to use to high of a programming voltage
-            print("Max Program Voltage Reached. Stopping...")
-            sys.exit()
+    #Wait for a certain amount of time
+    print(f"Waiting for {b1500.test_info.Wait / 60:.2f} minute(s)...")
+    time.sleep(b1500.test_info.Wait)  # Pauses execution for a variable number of seconds
+    print("Done waiting!")
 
-        if g_cur >= g_max: #Am I Programmed too High?
-            print("\nIn the Erasing loop.\n")
-            v_rst = v_rst - vstep
-            results = B1500.smu.smu_meas_sample_multi_term( smu_numD = 1, 
-                                                    smu_numG = 2, 
-                                                    smu_numS = 3, 
-                                                    smu_numB = 4, 
-                                                    vmeasD=0,
-                                                    vmeasG=v_rst,
-                                                    vmeasS=0, 
-                                                    vmeasB=0,
-                                                    icompDSB=100e-3, 
-                                                    icompG=0.1,  
-                                                    interval=t_prg, 
-                                                    pre_bias_time=0, 
-                                                    number=2, 
-                                                    disconnect_after=False, 
-                                                    plot_results=False )
-            
-            print(f'Measurement results of Program: {results}')
-            read_verify = B1500.smu.smu_meas_spot_4termininal(smu_numD=4, smu_numG=1, smu_numS=3, smu_numB=2,VDbias = v_rd, VGbias = 0,VSbias = 0, VBbias = 0 , vmeas=0.1 , icomp=100e-3 , reset_timer=True , disconnect_after=True )
-            print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
-            print(f'Spot meas Current: {current_initial}')
-            current_initial = read_verify[2]
-            time_initial = read_verify[0]
-            g_cur = current_initial/1
-            print(f"\nThe state of the program is at {g_cur*1e9}nS, Target is [{g_min*1e9}nS, {g_max*1e9}nS], with applied voltage of {v_rst}V with condition [{done}]\n\n")
-            pulse_num += 1
-            pulse_data.append([v_rst, g_cur[0] if isinstance(g_cur, (list, np.ndarray)) else g_cur])  # Store conductance as scalar
+    
+    if initial_run: #check for fast looping
+        activate_smus = True
+        disconnect_after = False
+    else:
+        activate_smus = False
 
-results_read = b1500.smu.smu_meas_sample_multi_term( smu_numD = smu_numD, 
-                                    smu_numG = smu_numG, 
-                                    smu_numS = smu_numS, 
-                                    smu_numB = smu_numB, 
-                                    vmeasD=0,
-                                    vmeasG=b1500.test_info.v_rd,
-                                    vmeasS=0, 
-                                    vmeasB=0,
-                                    icompDSB=1e-6, 
-                                    icompG=1e-6,  
-                                    interval=b1500.test_info.Interval,
-                                    pre_bias_time=0, 
-                                    number=b1500.test_info.data_points, 
-                                    disconnect_after=False, 
-                                    plot_results=False)
+    if last_run: #Not really needed since we break on last run earlier
+        disconnect_after = True
 
-print(results_read) #I wanna see what format the data is in
-data = b1500.data_clean(b1500, results_read, parameters)
-time_gate = data.get("SMU4_Time", None)
-current_gate = data.get("SMU4_Current", None)
-time_drain = data.get("SMU1_Time", None)
-current_drain = data.get("SMU1_Current", None)
+    #Get my conductance after biasing the Gate for so long
+    read_initial = B1500.smu.smu_meas_spot_4termininal(smu_numD=4, smu_numG=1, smu_numS=3, smu_numB=2, VDbias = b1500.test_info.v_rd, VGbias = 0,VSbias = 0, VBbias = 0 , vmeas=0.1 , icomp=100e-3 , reset_timer=True , disconnect_after=disconnect_after, clear_settings = True, activate_smus = activate_smus)
+    current_initial = read_initial[2]
+    time_initial = read_initial[0]
+    cond_initial = current_initial/1 
+    g_d_new = cond_initial
 
-# Create a figure with two subplots
-fig, axs = plt.subplots(2, 1, figsize=(6, 6), sharex=True)
+    #Check if conductance has leveled off
+    if ((g_d_new > (g_d - b1500.test_info.g_min_tolerance)) & (g_d_new < (g_d + b1500.test_info.g_max_tolerance))):
+        GLEVEL = True
+        last_run = True
 
-# First plot: Gate Current vs. Time
-axs[0].plot(time_gate, current_gate, marker="o", linestyle="-", label="Gate Current")
-axs[0].set_ylabel("Current (A)", fontsize=10)
-axs[0].legend(fontsize=9, loc="upper right")
-axs[0].grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
-
-# Second plot: Drain Current vs. Time
-axs[1].plot(time_drain, current_drain, marker="o", linestyle="-", label="Drain Current", color="red")
-axs[1].set_xlabel("Time (s)", fontsize=10)
-axs[1].set_ylabel("Current (A)", fontsize=10)
-axs[1].legend(fontsize=9, loc="upper right")
-axs[1].grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
-
-# Adjust spacing to prevent overlap
-plt.tight_layout()
-plt.show()
+print(f"My Voltage: {b1500.test_info.Gate_Bias}V Gives me a Conductance of: {g_d_new}S")
