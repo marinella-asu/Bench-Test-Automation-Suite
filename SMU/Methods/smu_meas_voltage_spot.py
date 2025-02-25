@@ -50,4 +50,4 @@ def smu_meas_voltage_spot(self, smu_num, imeas=0.0, vcomp=10, reset_timer=True, 
 
     # Read and process measurement data
     data = self.b1500.read()
-    return self.process_data_str_tiv(data)
+    return data

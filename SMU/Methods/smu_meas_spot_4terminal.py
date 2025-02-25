@@ -1,6 +1,7 @@
+import numpy as np
 def smu_meas_spot_4terminal(self, smu_numD, smu_numG, smu_numS, smu_numB, 
                             VDbias=0.1, VGbias=0, VSbias=0, VBbias=0, 
-                            vmeas=0.1, icomp=100e-3, reset_timer=True, disconnect_after=True):
+                            vmeas=0.1, icomp=100e-3, reset_timer=True, disconnect_after=True, clear_settings=True, activate_smus=True):
     """
     Performs a 4-terminal spot measurement.
 
@@ -34,8 +35,8 @@ def smu_meas_spot_4terminal(self, smu_numD, smu_numG, smu_numS, smu_numB,
     # Select high-resolution ADC
     self.b1500.write(f"AAD {smu_chD},1")  
 
-    # Connect SMUs
-    self.b1500.write(f"CN {smu_chD},{smu_chG},{smu_chS},{smu_chB}")  
+    if activate_smus:
+        self.b1500.write(f"CN {smu_chD},{smu_chG},{smu_chS},{smu_chB}")  # Connect SMUs
 
     # Apply bias voltages
     self.b1500.write(f"DV {smu_chD},0,{VDbias},100e-3")  
@@ -57,13 +58,28 @@ def smu_meas_spot_4terminal(self, smu_numD, smu_numG, smu_numS, smu_numB,
     self.b1500.write(f"TTIV {smu_chD},0,0")  
     self.b1500.write("TSQ")  
 
-    # Zero output and disconnect SMUs
-    self.b1500.write(f"DZ {smu_chD}")  
+    # If clear_settings is True, remove biases but keep SMUs active
+    if clear_settings:
+        self.b1500.write(f"DZ {smu_chD}")  # Zero output to reset the voltage bias
+        
     if disconnect_after:
         self.b1500.write(f"CL {smu_chD},{smu_chG},{smu_chS},{smu_chB}")  
 
-    # Read and process data
-    data = self.b1500.read()
-    times, voltages, currents = self.process_data_str_tiv(data)
 
-    return times, voltages, currents
+    # Read and process data
+    data = self.data_clean(self.b1500.read())  # Returns a DataFrame
+    time_col = f"SMU{smu_numD}_Time (s)"
+    voltage_col = f"SMU{smu_numD}_Voltage (V)"
+    current_col = f"SMU{smu_numD}_Current (A)"
+
+    try:
+        time_values = data[time_col].to_numpy(dtype=np.float64)
+        voltage_values = data[voltage_col].to_numpy(dtype=np.float64)
+        current_values = data[current_col].to_numpy(dtype=np.float64)
+
+    except KeyError as e:
+        missing_col = str(e).strip("'")
+        print(f"❌ Missing expected column in processed data: {missing_col}\n Returning data array") # REMEMBER THIS DOES NOT STOP THE PROGRAM ITS JUST A PRINT SO YOU CAN SEE WHAT WENT WRONG WITH YOUR DATA
+        return data  # Return full dataset if missing columns
+
+    return time_values, voltage_values, current_values

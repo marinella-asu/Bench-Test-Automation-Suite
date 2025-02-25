@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 import re
+import wgfmu_consts as wgc
 
 # Unit type mapping from the B1500 documentation
 UNIT_MAP = {
@@ -36,11 +37,18 @@ CHANNEL_MAP = {
     "a": 102, "b": 202, "c": 302, "d": 402, "e": 502, "f": 602, "g": 702, "h": 802, "i": 902, "j": 1002
 }
 
+# Define configurations for each B1500 unit
+B1500_CONFIG = {
+    "A": {"gpib_address": 17, "smu_channels": [301, 401, 501, 601], "wgfmu_channels": [101, 102]},
+    "B": {"gpib_address": 18, "smu_channels": [302, 402, 502, 602], "wgfmu_channels": [103, 104]}, #Change
+    "C": {"gpib_address": 19, "smu_channels": [303, 403, 503, 603], "wgfmu_channels": [105, 106]}, #Change 
+    "D": {"gpib_address": 20, "smu_channels": [304, 404, 504, 604], "wgfmu_channels": [107, 108]}, #Change
+}
 
    
 
 class B1500:
-    def __init__(self, gpib_address = 17, smu_channels= [301, 401, 501, 601], wgfmu_channels = [101, 102],  parameters=None, timeout=200000):
+    def __init__(self, parameters, unit_label = None, gpib_address = 17, smu_channels= [301, 401, 501, 601], wgfmu_channels = [101, 102], timeout=200000):
         """
         Initializes the B1500 unified interface, including shared resource management
         for SMUs and WGFMUs, and a TestInfo object for parameter handling.
@@ -51,21 +59,66 @@ class B1500:
             parameters (dict): Initial parameters for the test.
             timeout (int): Timeout in seconds for GUI validation.
         """
+
         self.gpib_address = gpib_address
         self.smus = smu_channels
         self.wgfmus = wgfmu_channels
+
+        if unit_label is not None:
+            if unit_label not in B1500_CONFIG:
+                raise ValueError(f"❌ Invalid B1500 unit label '{unit_label}'. Choose from: A, B, C, or D.")
+
+            # Load configuration for the selected unit
+            config = B1500_CONFIG[unit_label]
+            self.gpib_address = config["gpib_address"]
+            self.smus = config["smu_channels"]
+            self.wgfmus = config["wgfmu_channels"]
+
+            # Display configuration for verification
+            print(f"🔧 Initializing B1500 Unit {unit_label}")
+            print(f"📡 GPIB Address: {self.gpib_address}")
+            print(f"🔌 SMU Channels: {self.smus}")
+            print(f"⚡ WGFMU Channels: {self.wgfmus}")
+
+        
         # self.resource_manager = pyvisa.ResourceManager()
         # self.connection = self._connect_to_instrument()
-        self.connection = "Connection"
-
+        self.connection = "Connection" # THIS IS JUST FOR A TEST PLEASE CHANGE THIS FOR THE RELEASE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        
         # Initialize SMU and WGFMU objects
         
         self.smu = SMU(self.connection, self.smus)
         self.wgfmu = WGFMU(self.connection, self.wgfmus)
+        
 
         # Initialize TestInfo and validate parameters
         self.test_info = TestInfo(parameters or {})
         self.test_info.validate_and_prompt(timeout=timeout)
+        self.parameters = parameters
+
+        if hasattr(self.test_info, "VDD_WGFMU"):
+            if (self.test_info.VDD_WGFMU == 1):
+                self.test_info.ch_vdd = self.wgfmu.wgfmus[0]
+                self.test_info.ch_vss = self.wgfmu.wgfmus[1]
+            elif (self.test_info.VDD_WGFMU == 0):
+                self.test_info.ch_vdd = self.wgfmu.wgfmus[1]
+                self.test_info.ch_vss = self.wgfmu.wgfmus[0]
+
+        VDD_waveform_data = self.test_info.parameters.get("VDD Waveform Data", None)
+        VSS_waveform_data = self.test_info.parameters.get("VSS Waveform Data", None)
+        if VDD_waveform_data:
+            self.VDD_T_values = VDD_waveform_data["Time"]
+            self.VDD_V_values = VDD_waveform_data["Voltage"]
+            print(f"Loaded waveform with {len(self.VDD_T_values)} points.")
+        else:
+            print("No waveform data found.")
+        if VSS_waveform_data:
+            self.VSS_T_values = VSS_waveform_data["Time"]
+            self.VSS_V_values = VSS_waveform_data["Voltage"]
+            print(f"Loaded waveform with {len(self.VSS_T_values)} points.")
+        else:
+            print("No waveform data found.")
+
 
     def _connect_to_instrument(self):
         """
@@ -153,8 +206,6 @@ class B1500:
         print(f"📂 Saving CSV to: {csv_filepath}")
         print(f"📂 Saving TXT to: {txt_filepath}")
 
-        # Store parsed data
-        parsed_data = []
 
         # Split raw data string into individual entries
         entries = raw_data.strip().split(",")
@@ -244,3 +295,41 @@ class B1500:
             print(f"📦 Extracted NumPy Array for {column}: {unit_array.shape}")
 
         return output_data
+    
+
+    def save_numpy_to_csv(self, TestInfo, array, filename = "Saved"):
+        """
+        Saves a NumPy array as a CSV file in the Data directory using the experimenter's name.
+
+        Parameters:
+        - array (numpy.ndarray): The NumPy array to be saved.
+        - filename (str): The desired base filename (without extension).
+        - TestInfo (object): Object containing test parameters, including "Name".
+
+        Returns:
+        - str: Full path to the saved CSV file.
+        """
+        print("🔄 Starting save_numpy_to_csv method...")
+
+        # Get experimenter's name
+        experimenter = TestInfo.Name if hasattr(TestInfo, "Name") else "Unknown_Experimenter"
+
+        # Locate "Bench_Test_Automation_Suite" folder dynamically
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        while not script_dir.endswith("Bench_Test_Automation_Suite"):
+            script_dir = os.path.dirname(script_dir)  # Move up one level
+
+        # Ensure the data is stored inside "Bench_Test_Automation_Suite/Data"
+        base_dir = os.path.join(script_dir, "Data", experimenter)
+        os.makedirs(base_dir, exist_ok=True)
+
+        # Generate timestamped filename
+        date_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        csv_filepath = os.path.join(base_dir, f"{filename}_{date_str}.csv")
+
+        # Save the NumPy array as a CSV
+        np.savetxt(csv_filepath, array, delimiter=",", fmt="%.6e")
+
+        print(f"✅ NumPy array saved to: {csv_filepath}")
+
+        return csv_filepath
