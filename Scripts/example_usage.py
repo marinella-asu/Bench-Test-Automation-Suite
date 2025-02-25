@@ -59,6 +59,7 @@ fig, axs = plt.subplots(2, 1, figsize=(6, 6), sharex=True)
 
 # First plot: Gate Current vs. Time
 axs[0].plot(time_gate, current_gate, marker="o", linestyle="-", label="Gate Current")
+axs[1].set_xlabel("Time (s)", fontsize=10)
 axs[0].set_ylabel("Current (A)", fontsize=10)
 axs[0].legend(fontsize=9, loc="upper right")
 axs[0].grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
