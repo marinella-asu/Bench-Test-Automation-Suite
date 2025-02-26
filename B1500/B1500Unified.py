@@ -81,9 +81,10 @@ class B1500:
             print(f"⚡ WGFMU Channels: {self.wgfmus}")
 
         
-        # self.resource_manager = pyvisa.ResourceManager()
-        # self.connection = self._connect_to_instrument()
-        self.connection = "Connection" # THIS IS JUST FOR A TEST PLEASE CHANGE THIS FOR THE RELEASE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        self.resource_manager = pyvisa.ResourceManager()
+        self.connection = self._connect_to_instrument()
+        self.connection.timeout = 200000
+        # self.connection = "Connection" # THIS IS JUST FOR A TEST PLEASE CHANGE THIS FOR THE RELEASE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         # Initialize SMU and WGFMU objects
         
@@ -96,28 +97,28 @@ class B1500:
         self.test_info.validate_and_prompt(timeout=timeout)
         self.parameters = parameters
 
-        if hasattr(self.test_info, "VDD_WGFMU"):
-            if (self.test_info.VDD_WGFMU == 1):
-                self.test_info.ch_vdd = self.wgfmu.wgfmus[0]
-                self.test_info.ch_vss = self.wgfmu.wgfmus[1]
-            elif (self.test_info.VDD_WGFMU == 0):
-                self.test_info.ch_vdd = self.wgfmu.wgfmus[1]
-                self.test_info.ch_vss = self.wgfmu.wgfmus[0]
+        # if hasattr(self.test_info, "VDD_WGFMU"):
+        #     if (self.test_info.VDD_WGFMU == 1):
+        #         self.test_info.ch_vdd = self.wgfmu.wgfmus[0]
+        #         self.test_info.ch_vss = self.wgfmu.wgfmus[1]
+        #     elif (self.test_info.VDD_WGFMU == 0):
+        #         self.test_info.ch_vdd = self.wgfmu.wgfmus[1]
+        #         self.test_info.ch_vss = self.wgfmu.wgfmus[0]
 
-        VDD_waveform_data = self.test_info.parameters.get("VDD Waveform Data", None)
-        VSS_waveform_data = self.test_info.parameters.get("VSS Waveform Data", None)
-        if VDD_waveform_data:
-            self.VDD_T_values = VDD_waveform_data["Time"]
-            self.VDD_V_values = VDD_waveform_data["Voltage"]
-            print(f"Loaded waveform with {len(self.VDD_T_values)} points.")
-        else:
-            print("No waveform data found.")
-        if VSS_waveform_data:
-            self.VSS_T_values = VSS_waveform_data["Time"]
-            self.VSS_V_values = VSS_waveform_data["Voltage"]
-            print(f"Loaded waveform with {len(self.VSS_T_values)} points.")
-        else:
-            print("No waveform data found.")
+        # VDD_waveform_data = self.test_info.parameters.get("VDD Waveform Data", None)
+        # VSS_waveform_data = self.test_info.parameters.get("VSS Waveform Data", None)
+        # if VDD_waveform_data:
+        #     self.VDD_T_values = VDD_waveform_data["Time"]
+        #     self.VDD_V_values = VDD_waveform_data["Voltage"]
+        #     print(f"Loaded waveform with {len(self.VDD_T_values)} points.")
+        # else:
+        #     print("No waveform data found.")
+        # if VSS_waveform_data:
+        #     self.VSS_T_values = VSS_waveform_data["Time"]
+        #     self.VSS_V_values = VSS_waveform_data["Voltage"]
+        #     print(f"Loaded waveform with {len(self.VSS_T_values)} points.")
+        # else:
+        #     print("No waveform data found.")
 
 
     def _connect_to_instrument(self):
@@ -190,7 +191,7 @@ class B1500:
 
         # Locate "Bench_Test_Automation_Suite" folder dynamically
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        while not script_dir.endswith("Bench_Test_Automation_Suite"):
+        while not script_dir.endswith("Bench-Test-Automation-Suite-main"):
             script_dir = os.path.dirname(script_dir)  # Move up one level
 
         # Ensure the data is stored inside "Bench_Test_Automation_Suite/Data"

@@ -66,6 +66,7 @@ print(f"\nTHE INITIAL CONDUCTANCE IS: {g_d*1e9}nS")
 initial_run  = True #flag so I can do fast looping
 last_run = False
 GLEVEL = False
+g_d_new = 0
 
 #Now lets loop between Setting a DC Bias on the gate and Reading the conductance after a certain time
 while not GLEVEL: #am I leveled off or saturated conductance
