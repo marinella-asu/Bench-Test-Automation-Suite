@@ -60,26 +60,30 @@ def smu_meas_spot_4terminal(self, smu_numD, smu_numG, smu_numS, smu_numB,
 
     # If clear_settings is True, remove biases but keep SMUs active
     if clear_settings:
-        self.b1500.write(f"DZ {smu_chD}")  # Zero output to reset the voltage bias
+        self.b1500.write("DZ")  # Zero output to reset the voltage bias
         
     if disconnect_after:
         self.b1500.write(f"CL {smu_chD},{smu_chG},{smu_chS},{smu_chB}")  
 
 
     # Read and process data
-    data = self.data_clean(self.b1500.read())  # Returns a DataFrame
-    time_col = f"SMU{smu_numD}_Time (s)"
-    voltage_col = f"SMU{smu_numD}_Voltage (V)"
-    current_col = f"SMU{smu_numD}_Current (A)"
+    # data = self.data_clean(self.b1500.read(), self.parameters)  # Returns a DataFrame
+    data = self.b1500.read()
+    return data
+    
+    
+    # time_col = f"SMU{smu_numD}_Time"
+    # voltage_col = f"SMU{smu_numD}_Voltage"
+    # current_col = f"SMU{smu_numD}_Current"
 
-    try:
-        time_values = data[time_col].to_numpy(dtype=np.float64)
-        voltage_values = data[voltage_col].to_numpy(dtype=np.float64)
-        current_values = data[current_col].to_numpy(dtype=np.float64)
+    # try:
+    #     time_values = data[time_col].to_numpy(dtype=np.float64)
+    #     voltage_values = data[voltage_col].to_numpy(dtype=np.float64)
+    #     current_values = data[current_col].to_numpy(dtype=np.float64)
 
-    except KeyError as e:
-        missing_col = str(e).strip("'")
-        print(f"❌ Missing expected column in processed data: {missing_col}\n Returning data array") # REMEMBER THIS DOES NOT STOP THE PROGRAM ITS JUST A PRINT SO YOU CAN SEE WHAT WENT WRONG WITH YOUR DATA
-        return data  # Return full dataset if missing columns
+    # except KeyError as e:
+    #     missing_col = str(e).strip("'")
+    #     print(f"❌ Missing expected column in processed data: {missing_col}\n Returning data array") # REMEMBER THIS DOES NOT STOP THE PROGRAM ITS JUST A PRINT SO YOU CAN SEE WHAT WENT WRONG WITH YOUR DATA
+    #     return data  # Return full dataset if missing columns
 
-    return time_values, voltage_values, current_values
+    # return time_values, voltage_values, current_values

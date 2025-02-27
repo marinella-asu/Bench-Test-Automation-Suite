@@ -120,7 +120,14 @@ class B1500:
         # else:
         #     print("No waveform data found.")
 
-
+    def __getattr__(self, name):
+        # this allows dynamic access to variables in the parameters
+        #Example b1500.Name will return test_info.parameters["Name"]
+        
+        if name in self.test_info.parameters:
+            return self.test_info.parameters[name]
+        raise AttributeError(f"'B1500' Object has no attribute '{name}'")
+        
     def _connect_to_instrument(self):
         """
         Establishes a shared connection to the B1500 using the GPIB address.
@@ -317,7 +324,7 @@ class B1500:
 
         # Locate "Bench_Test_Automation_Suite" folder dynamically
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        while not script_dir.endswith("Bench_Test_Automation_Suite"):
+        while not script_dir.endswith("Bench-Test-Automation-Suite-main"):
             script_dir = os.path.dirname(script_dir)  # Move up one level
 
         # Ensure the data is stored inside "Bench_Test_Automation_Suite/Data"
@@ -325,7 +332,7 @@ class B1500:
         os.makedirs(base_dir, exist_ok=True)
 
         # Generate timestamped filename
-        date_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        date_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         csv_filepath = os.path.join(base_dir, f"{filename}_{date_str}.csv")
 
         # Save the NumPy array as a CSV

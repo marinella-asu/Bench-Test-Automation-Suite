@@ -30,6 +30,8 @@ def smu_meas_sample_multi_term_int( self, smu_numD, smu_numG, smu_numS, smu_numB
     # Enable timestamps
     self.b1500.write( "TSC 1" )
     
+    #Clear Timer Counter
+    self.b1500.write( "TSR" )
     #Integration Time control
     self.b1500.write( f"AIT 1,1,{int_num}" ) # type, mode, (integration number/time): 1-High Resolution; mode 0-default 1-manual 2-PWL 3-Time-dependent; N: integration number or time(only for mode 3)
     
