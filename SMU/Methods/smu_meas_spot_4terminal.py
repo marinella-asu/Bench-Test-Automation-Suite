@@ -60,13 +60,35 @@ def smu_meas_spot_4terminal(self, smu_numD, smu_numG, smu_numS, smu_numB,
 
     # If clear_settings is True, remove biases but keep SMUs active
     if clear_settings:
+<<<<<<< HEAD
+        self.b1500.write(f"DZ {smu_chD}")  # Zero output to reset the voltage bias
+=======
         self.b1500.write("DZ")  # Zero output to reset the voltage bias
+>>>>>>> 1e29eaeee6f5e2c3137cf017ecfe796e5e992612
         
     if disconnect_after:
         self.b1500.write(f"CL {smu_chD},{smu_chG},{smu_chS},{smu_chB}")  
 
 
     # Read and process data
+<<<<<<< HEAD
+    data = self.data_clean(self.b1500.read())  # Returns a DataFrame
+    time_col = f"SMU{smu_numD}_Time (s)"
+    voltage_col = f"SMU{smu_numD}_Voltage (V)"
+    current_col = f"SMU{smu_numD}_Current (A)"
+
+    try:
+        time_values = data[time_col].to_numpy(dtype=np.float64)
+        voltage_values = data[voltage_col].to_numpy(dtype=np.float64)
+        current_values = data[current_col].to_numpy(dtype=np.float64)
+
+    except KeyError as e:
+        missing_col = str(e).strip("'")
+        print(f"❌ Missing expected column in processed data: {missing_col}\n Returning data array") # REMEMBER THIS DOES NOT STOP THE PROGRAM ITS JUST A PRINT SO YOU CAN SEE WHAT WENT WRONG WITH YOUR DATA
+        return data  # Return full dataset if missing columns
+
+    return time_values, voltage_values, current_values
+=======
     # data = self.data_clean(self.b1500.read(), self.parameters)  # Returns a DataFrame
     data = self.b1500.read()
     return data
@@ -87,3 +109,4 @@ def smu_meas_spot_4terminal(self, smu_numD, smu_numG, smu_numS, smu_numB,
     #     return data  # Return full dataset if missing columns
 
     # return time_values, voltage_values, current_values
+>>>>>>> 1e29eaeee6f5e2c3137cf017ecfe796e5e992612
