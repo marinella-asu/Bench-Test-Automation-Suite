@@ -8,6 +8,41 @@ import time
 #in confuctance versus voltage and how long it takes to program each state for each voltage cause what if lower conductance/Higher voltage states
 #are arived at faster compared to the change in conductance
 
+
+#So what if we had the core methods set up in a way that we could designate in our parameters that we have our SMUs set up as like Drain = 4, Source = 3, Gate, Base
+# and then when we run the core SMU functions we designate like test pad = "Drain" and if we designate multiple pads then we do a simultaneous measurement like 
+# if len(pads) > 1 then do this code chunk instead of the usual single pad measurement
+
+#What if we turned the bias_smu function and made a new one called Bias SMus and it looks for my SMU config and SMU Bias numbers and maybe a SMU Bias 1 or SMU Bias 2 identifier
+# to allow for multiple bias steps
+
+#lets make it so you just pass the b1500 object, your test pad identifier and maybe other identifiers like bias pads. to each method and it pulls out your test parameters 
+# and we can make them all have specific inputs that we make available to the user they can input them as they pelase and it shows the default and the user simply just fills
+# them out. What if the parameters had to be listed in order and once we grab some parameters we can assume them used and grab the next set for each method
+
+#What if each method we don't ask for anything but the b1500 object and the test pad and everything else like other bias is put into parameters so list your methods and 
+# fill them with b1500 and testpad = "Drain"
+# Then the parameters window is where we set all the little details so like other pads and their bias and assume if not listed at frist part where "drain" = 4 then its not in use
+# but if it is in use and not bias was defined then assume to be grounded
+# other parameters like interval would be set and we could have a structure like follows:
+
+#after name test and whatnot require parameters
+
+#SMU Config
+#   "Drain" = 4,
+
+#IVSweep
+#   "Voltage Start" = 0,
+#   "Voltage Stop" = 1,
+#   "Drain Bias" = 1, # This would set the bias during the sweep to whatever smu was plugged into the drain
+
+#Initial Conductance #Since we use this so much we should have an initial conductance method that grabs conductance and time and return a solid value
+#   "Drain Bias" = 1,
+
+#What about loops will the execution happen out of order what if we branch back to the top?
+#Could we just label our different method calls with a distinct Name like 4termincal spot read and then a number or identifier between them 
+# and how would we group the values in them?
+
 # Define experiment parameters
 parameters = {
     "Name": "Evan",
@@ -16,6 +51,12 @@ parameters = {
     "Device Number": 67,
     "Waveform Format": "Reram",  # Loads "Reram.txt"
     "Waveform": "Evan_Reram_4",
+
+    #SMU Configuration
+    "Drain": 4, #SMU4 is connected to the drain
+    "Source": 3,
+    "Gate": 2,
+    "Base": 1,
 
     # "Waveform Editor": "ask",   
     "VDD WGFMU": 1,
@@ -46,17 +87,11 @@ parameters = {
 # Initialize Unified B1500 (includes parameter validation)
 b1500 = B1500(unit_label = 'A', parameters=parameters)
 
-#This is my probe setup I think (only matters for biasing my device)
-smu_numD = 4
-smu_numG = 2
-smu_numS = 3
-smu_numB = 1
 
-
-b1500.smu.IVSweep(smu_numD, vstart=b1500.test_info.Start, vstop=b1500.test_info.Stop , nsteps=b1500.test_info.Steps, mode=b1500.test_info.Mode, icomp=b1500.test_info.ICompliance, connect_first=True, disconnect_after=True , plot_data=True)
+b1500.smu.IVSweep(b1500.Drain, vstart=b1500.v_rd, vstop=b1500.Stop , nsteps=b1500.Steps, mode=b1500.Mode, icomp=b1500.ICompliance, connect_first=True, disconnect_after=True , plot_data=True)
 
 #Next get Initial Conductance:
-read_initial = B1500.smu.smu_meas_spot_4termininal(smu_numD=4, smu_numG=1, smu_numS=3, smu_numB=2, VDbias = b1500.test_info.v_rd, VGbias = 0,VSbias = 0, VBbias = 0 , vmeas=0.1 , icomp=100e-3 , reset_timer=True , disconnect_after=True )
+read_initial = B1500.smu.smu_meas_spot_4termininal(smu_numD=4, smu_numG=1, smu_numS=3, smu_numB=2, VDbias = b1500.v_rd, VGbias = 0,VSbias = 0, VBbias = 0 , vmeas=0.1 , icomp=100e-3 , reset_timer=True , disconnect_after=True )
 current_initial = read_initial[2]
 time_initial = read_initial[0]
 cond_initial = current_initial/1 
@@ -79,14 +114,15 @@ while not GLEVEL: #am I leveled off or saturated conductance
         break
 
     g_d = g_d_new
+
     #Bias Just the Gate and leave everything else at 0
-    b1500.smu.bias_smu(smu_numD, b1500.test_info.Drain_Bias, Icomp=100e-3)
-    b1500.smu.bias_smu(smu_numG, b1500.test_info.Gate_Bias, Icomp=100e-3)
-    b1500.smu.bias_smu(smu_numS, b1500.test_info.Source_Bias, Icomp=100e-3)
-    b1500.smu.bias_smu(smu_numB, b1500.test_info.Base_Bias, Icomp=100e-3)
+    b1500.smu.bias_smu(b1500.Drain, b1500.Drain_Bias, Icomp=100e-3)
+    b1500.smu.bias_smu(b1500.Gate, b1500.Gate_Bias, Icomp=100e-3)
+    b1500.smu.bias_smu(b1500.Source, b1500.Source_Bias, Icomp=100e-3)
+    b1500.smu.bias_smu(b1500.Base, b1500.Base_Bias, Icomp=100e-3)
 
     #Wait for a certain amount of time
-    print(f"Waiting for {b1500.test_info.Wait} seconds")
+    print(f"Waiting for {b1500.Wait} seconds")
     time.sleep(b1500.test_info.Wait)  # Pauses execution for a variable number of seconds
     print("Done waiting!")
 
@@ -101,7 +137,7 @@ while not GLEVEL: #am I leveled off or saturated conductance
         disconnect_after = True
 
     #Get my conductance after biasing the Gate for so long
-    read_initial = B1500.smu.smu_meas_spot_4termininal(smu_numD=4, smu_numG=1, smu_numS=3, smu_numB=2, VDbias = b1500.test_info.v_rd, VGbias = 0,VSbias = 0, VBbias = 0 , vmeas=0.1 , icomp=100e-3 , reset_timer=True , disconnect_after=disconnect_after, clear_settings = True, activate_smus = activate_smus)
+    read_initial = B1500.smu.smu_meas_spot_4termininal(smu_numD=4, smu_numG=1, smu_numS=3, smu_numB=2, VDbias = b1500.v_rd, VGbias = 0,VSbias = 0, VBbias = 0 , vmeas=0.1 , icomp=100e-3 , reset_timer=True , disconnect_after=disconnect_after, clear_settings = True, activate_smus = activate_smus)
     current_initial = read_initial[2]
     time_initial = read_initial[0]
     cond_initial = current_initial/1 
