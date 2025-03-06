@@ -83,7 +83,7 @@ class B1500:
         
         self.resource_manager = pyvisa.ResourceManager()
         self.connection = self._connect_to_instrument()
-        self.connection.timeout = 200000
+        self.connection.timeout = timeout
         # self.connection = "Connection" # THIS IS JUST FOR A TEST PLEASE CHANGE THIS FOR THE RELEASE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         # Initialize SMU and WGFMU objects
@@ -97,35 +97,17 @@ class B1500:
         self.test_info.validate_and_prompt(timeout=timeout)
         self.parameters = parameters
 
-        # if hasattr(self.test_info, "VDD_WGFMU"):
-        #     if (self.test_info.VDD_WGFMU == 1):
-        #         self.test_info.ch_vdd = self.wgfmu.wgfmus[0]
-        #         self.test_info.ch_vss = self.wgfmu.wgfmus[1]
-        #     elif (self.test_info.VDD_WGFMU == 0):
-        #         self.test_info.ch_vdd = self.wgfmu.wgfmus[1]
-        #         self.test_info.ch_vss = self.wgfmu.wgfmus[0]
-
-        # VDD_waveform_data = self.test_info.parameters.get("VDD Waveform Data", None)
-        # VSS_waveform_data = self.test_info.parameters.get("VSS Waveform Data", None)
-        # if VDD_waveform_data:
-        #     self.VDD_T_values = VDD_waveform_data["Time"]
-        #     self.VDD_V_values = VDD_waveform_data["Voltage"]
-        #     print(f"Loaded waveform with {len(self.VDD_T_values)} points.")
-        # else:
-        #     print("No waveform data found.")
-        # if VSS_waveform_data:
-        #     self.VSS_T_values = VSS_waveform_data["Time"]
-        #     self.VSS_V_values = VSS_waveform_data["Voltage"]
-        #     print(f"Loaded waveform with {len(self.VSS_T_values)} points.")
-        # else:
-        #     print("No waveform data found.")
 
     def __getattr__(self, name):
         # this allows dynamic access to variables in the parameters
         #Example b1500.Name will return test_info.parameters["Name"]
         
-        if name in self.test_info.parameters:
-            return self.test_info.parameters[name]
+        if name in self.test_info.parameters or name.replace("_", " ") in self.test_info.parameters:
+            if  name.replace("_", " ") in self.test_info.parameters:
+                return self.test_info.parameters[name.replace("_", " ")]
+            else:
+                return self.test_info.parameters[name]
+        
         raise AttributeError(f"'B1500' Object has no attribute '{name}'")
         
     def _connect_to_instrument(self):
