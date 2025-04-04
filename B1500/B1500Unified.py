@@ -176,7 +176,7 @@ class B1500:
 
 
 
-    def data_clean(self, raw_data, parameters):
+    def data_clean(self, raw_data, parameters, NoSave = False):
         """
         Cleans and structures raw B1500 output data, mapping it to the correct SMU/WGFMU channels.
         Saves the cleaned data into both a structured CSV file and a TXT file inside the 'data/' directory.
@@ -190,29 +190,7 @@ class B1500:
         """
         print("🔄 Starting data_clean method...")
 
-        # Extract parameter values dynamically
-        experimenter = parameters.get("Name", "Unknown_Experimenter")
-        test_number = parameters.get("Test Number", "Unknown_Test")
-        die_number = parameters.get("Die Number", "Unknown_Die")
-        device_number = parameters.get("Device Number", "Unknown_Device")
-
-        # Locate "Bench_Test_Automation_Suite" folder dynamically
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        while not script_dir.endswith("Bench-Test-Automation-Suite-main"):
-            script_dir = os.path.dirname(script_dir)  # Move up one level
-
-        # Ensure the data is stored inside "Bench_Test_Automation_Suite/Data"
-        base_dir = os.path.join(script_dir, "Data", experimenter)
-        os.makedirs(base_dir, exist_ok=True)
-
-        # Generate filenames
-        date_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        file_basename = f"{test_number}_Die{die_number}_Device{device_number}_{date_str}"
-        csv_filepath = os.path.join(base_dir, file_basename + ".csv")
-        txt_filepath = os.path.join(base_dir, file_basename + ".txt")
-
-        print(f"📂 Saving CSV to: {csv_filepath}")
-        print(f"📂 Saving TXT to: {txt_filepath}")
+        
 
 
         # Split raw data string into individual entries
@@ -272,28 +250,54 @@ class B1500:
 
         print("📊 Pivoted DataFrame Preview:")
         print(df_pivot.head(10))
+        
+        if not NoSave:
+            # Extract parameter values dynamically
+            experimenter = parameters.get("Name", "Unknown_Experimenter")
+            test_number = parameters.get("Test Number", "Unknown_Test")
+            die_number = parameters.get("Die Number", "Unknown_Die")
+            device_number = parameters.get("Device Number", "Unknown_Device")
 
-        # ---- Write Clean CSV File ----
-        with open(csv_filepath, "w") as f:
-            # Write metadata as comments
-            for key, value in parameters.items():
-                f.write(f"# {key}: {value}\n")
-            f.write("\n")  # Blank line before actual data
-            df_pivot.to_csv(f)
+            # Locate "Bench_Test_Automation_Suite" folder dynamically
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            while not script_dir.endswith("Bench-Test-Automation-Suite-main"):
+                script_dir = os.path.dirname(script_dir)  # Move up one level
 
-        # ---- Write Clean TXT File ----
-        with open(txt_filepath, "w") as f:
-            # Write metadata in a structured "box" format
-            max_key_length = max(len(k) for k in parameters.keys())
-            f.write("=" * (max_key_length + 20) + "\n")
-            for key, value in parameters.items():
-                f.write(f"{key.ljust(max_key_length)}: {value}\n")
-            f.write("=" * (max_key_length + 20) + "\n\n")
+            # Ensure the data is stored inside "Bench_Test_Automation_Suite/Data"
+            base_dir = os.path.join(script_dir, "Data", experimenter)
+            os.makedirs(base_dir, exist_ok=True)
 
-            # Write the data in a readable format
-            df_pivot.to_csv(f, sep="\t")
+            # Generate filenames
+            date_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            file_basename = f"{test_number}_Die{die_number}_Device{device_number}_{date_str}"
+            csv_filepath = os.path.join(base_dir, file_basename + ".csv")
+            txt_filepath = os.path.join(base_dir, file_basename + ".txt")
 
-        print(f"✅ Data cleaned and saved to: {csv_filepath} and {txt_filepath}")
+            print(f"📂 Saving CSV to: {csv_filepath}")
+            print(f"📂 Saving TXT to: {txt_filepath}")
+            # ---- Write Clean CSV File ----
+            with open(csv_filepath, "w") as f:
+                # Write metadata as comments
+                for key, value in parameters.items():
+                    f.write(f"# {key}: {value}\n")
+                f.write("\n")  # Blank line before actual data
+                df_pivot.to_csv(f)
+
+            # ---- Write Clean TXT File ----
+            with open(txt_filepath, "w") as f:
+                # Write metadata in a structured "box" format
+                max_key_length = max(len(k) for k in parameters.keys())
+                f.write("=" * (max_key_length + 20) + "\n")
+                for key, value in parameters.items():
+                    f.write(f"{key.ljust(max_key_length)}: {value}\n")
+                f.write("=" * (max_key_length + 20) + "\n\n")
+
+                # Write the data in a readable format
+                df_pivot.to_csv(f, sep="\t")
+            
+            print(f"✅ Data cleaned and saved to: {csv_filepath} and {txt_filepath}")
+
+       
 
         # Convert DataFrame into structured NumPy arrays
         output_data = {}
@@ -320,7 +324,7 @@ class B1500:
         print("🔄 Starting save_numpy_to_csv method...")
 
         # Get experimenter's name
-        experimenter = TestInfo.Name if hasattr(TestInfo, "Name") else "Unknown_Experimenter"
+        experimenter = TestInfo.Name if hasattr(TestInfo.parameters, "Name") else "Unknown_Experimenter"
 
         # Locate "Bench_Test_Automation_Suite" folder dynamically
         script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -335,8 +339,9 @@ class B1500:
         date_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         csv_filepath = os.path.join(base_dir, f"{filename}_{date_str}.csv")
 
-        # Save the NumPy array as a CSV
-        np.savetxt(csv_filepath, array, delimiter=",", fmt="%.6e")
+
+        np.savetxt(csv_filepath, array, delimiter=",", fmt="%.10e")
+
 
         print(f"✅ NumPy array saved to: {csv_filepath}")
 

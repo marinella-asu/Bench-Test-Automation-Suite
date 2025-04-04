@@ -1,11 +1,11 @@
 import importlib
 import os
 import glob
-import pyvisa # Controlling b1500
 import ctypes as ct # Convert between python and C data types (needed for WGFMU)
 import numpy as np
 import time
 import matplotlib.pyplot as plt
+import inspect
 
 
 class SMU:
@@ -23,6 +23,32 @@ class SMU:
 
     def core_method(self):
         return "This is a core method of B1500Core."
+
+    def _resolve_params(self, method_name: str, b1500, override_params: dict = {}):
+        """Extract parameters from b1500.parameters using method_name and allow overrides."""
+        param_block = b1500.parameters.get(method_name, {})
+        
+        # Also attach as individual attributes like: b1500.vstart_MethodName
+        for key, value in param_block.items():
+            setattr(b1500, f"{key}_{method_name}", value)
+
+        # Get the actual method name calling this (e.g., 'smu_meas_sample_multi_term')
+        frame = inspect.currentframe().f_back
+        func_name = frame.f_code.co_name
+        func = getattr(self, func_name)
+        sig = inspect.signature(func)
+
+        args = {}
+        for param in sig.parameters:
+            if param == 'self':
+                continue
+            # Priority: overrides > param_block > b1500.<varname_methodname>
+            args[param] = (
+                override_params.get(param) or
+                param_block.get(param) or
+                getattr(b1500, f"{param}_{method_name}", None)
+            )
+        return args
 
     @staticmethod
     def load_methods():

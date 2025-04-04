@@ -43,7 +43,7 @@ class TestInfo:
             """Handles timeout for the GUI and exits the program."""
             print("Timeout reached. Exiting due to missing parameters.")
             root.quit()
-            exit(1)
+            exit()
 
         # Create the GUI
         root = tk.Tk()

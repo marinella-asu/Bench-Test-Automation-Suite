@@ -1,0 +1,14 @@
+# Name: Evan
+# Test Number: 800
+# Die Number: 1
+# Device Number: 67
+# Waveform Format: Reram
+# Waveform: Evan_Reram_4
+# VDD WGFMU: 1
+# VSS WGFMU: 2
+# Interval: 0.0015
+# data points: 300
+# Short_Check_Test: {'SMU_Pair': [1, 2], 'Max_Resistance': 200, 'Max_Voltage': 1, 'Dynamic_Check': True, 'D_StartV': 0, 'D_Step': 0.5, 'D_Wait': 10}
+
+Measurement,SMU1_Current
+0,+0.01334E-09

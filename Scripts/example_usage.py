@@ -9,12 +9,12 @@ parameters = {
     "Test Number": "1",
     "Die Number": 1,
     "Device Number": 67,
-    "Interval": 1.5e-3,
-    "data points": 3000,
-    "Voltage": 1,
+    "Interval": 10e-3,
+    "data_points": 300,
+    "v_rd": 1,
     "Waveform Format": "Reram",  # Loads "Reram.txt"
     "Waveform": "Evan_Reram_4",
-    # "Waveform Editor": "ask",   
+    "Waveform Editor": "ask",   
     "VDD WGFMU": 1,
     "VSS WGFMU": 2
 
@@ -22,7 +22,7 @@ parameters = {
 
 v_rd = 1  # Default for NSTEPS: Set an NSTEPS parameter if you want this to be different
 data_points = 300
-interval = 10e-3
+interval = 1.5e-3
 
     
 
@@ -32,8 +32,8 @@ b1500 = B1500(unit_label = 'A', parameters=parameters)
 #Gate is SMU2
 #Drain is SMU4
 
-smu_numD = 1
-smu_numG = 4 
+smu_numD = 4
+smu_numG = 1
 smu_numS = 3
 smu_numB = 2
 
@@ -42,14 +42,14 @@ results_read = b1500.smu.smu_meas_sample_multi_term_int(smu_numD = smu_numD,
                                     smu_numS = smu_numS, 
                                     smu_numB = smu_numB, 
                                     vmeasD=0,
-                                    vmeasG=v_rd,
+                                    vmeasG=b1500.v_rd,
                                     vmeasS=0, 
                                     vmeasB=0,
                                     icompDSB=1e-6, 
                                     icompG=1e-6,  
-                                    interval=interval,
+                                    interval=b1500.Interval,
                                     pre_bias_time=0, 
-                                    number=data_points, 
+                                    number=b1500.data_points, 
                                     disconnect_after=False, 
                                     plot_results=False,
                                     int_num = 50)
@@ -84,9 +84,6 @@ axs[1].grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
 
 # Rotate the x-axis labels to avoid overlap
 axs[1].tick_params(axis='x', rotation=45)  # Rotate x-axis labels
-
-# Adjust spacing between subplots
-plt.subplots_adjust(hspace=0.4)  # Add more space between subplots
 
 # Automatically adjust layout to make room for the rotated labels
 plt.tight_layout()

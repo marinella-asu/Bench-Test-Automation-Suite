@@ -30,7 +30,13 @@ def smu_meas_sample_multi_term(self, smu_numD, smu_numG, smu_numS, smu_numB, vme
     self.b1500.write(f"AAD {smu_chG},0") #REMEMBRE TO CHANGE THIS AND LOOK DURING FIRST TEST
     self.b1500.write(f"AAD {smu_chS},0")
     self.b1500.write(f"AAD {smu_chB},0")
-
+    
+    # Enable timestamps
+    self.b1500.write( "TSC 1" )
+    
+    #Clear Timer Counter
+    self.b1500.write( "TSR" )
+    
     # Enable SMUs and set voltage bias
     if activate_smus:
         self.b1500.write(f"CN {smu_chD},{smu_chG},{smu_chS},{smu_chB}")  # Connect SMUs
@@ -41,7 +47,9 @@ def smu_meas_sample_multi_term(self, smu_numD, smu_numG, smu_numS, smu_numB, vme
 
     # Setup sampling measurement
     self.b1500.write("PAD 1") #Enables parallel SMU measurements
-    self.b1500.write(f"MT {pre_bias_time},{interval},{number}")
+    self.b1500.write(f"MT {pre_bias_time},{interval},{number}")  # Sampling time settings
+
+    #just doing one measurement mode command on the gate SMU lets see what happens
     self.b1500.write(f"MM 10,{smu_chG}, {smu_chD}")  # Sampling measurement on Gate and Drain
 
     # Set current measurement mode
@@ -53,7 +61,11 @@ def smu_meas_sample_multi_term(self, smu_numD, smu_numG, smu_numS, smu_numB, vme
     # Execute measurement
     self.b1500.write("XE")
     self.b1500.query("*OPC?")
-
+    
+    # Read and process data
+    # data = self.b1500.query("DO")  # Read measurement data from all SMUs
+    data = self.b1500.read()
+    
     # If clear_settings is True, remove biases but keep SMUs active
     if clear_settings:
         self.b1500.write(f"DZ {smu_chD}")  # Zero output to reset the voltage bias
@@ -62,8 +74,7 @@ def smu_meas_sample_multi_term(self, smu_numD, smu_numG, smu_numS, smu_numB, vme
     if disconnect_after:
         self.b1500.write(f"CL {smu_chG},{smu_chD},{smu_chS},{smu_chB}")
 
-    # Read and process data
-    data = self.b1500.query("DO")  # Read measurement data from all SMUs
+
     print(data)
 
     return data
