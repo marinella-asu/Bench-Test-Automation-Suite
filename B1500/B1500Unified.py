@@ -339,7 +339,6 @@ class B1500:
         date_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         csv_filepath = os.path.join(base_dir, f"{filename}_{date_str}.csv")
 
-
         np.savetxt(csv_filepath, array, delimiter=",", fmt="%.10e")
 
 
