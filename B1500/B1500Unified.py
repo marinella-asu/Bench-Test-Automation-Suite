@@ -324,7 +324,7 @@ class B1500:
         print("🔄 Starting save_numpy_to_csv method...")
 
         # Get experimenter's name
-        experimenter = TestInfo.Name if hasattr(TestInfo.parameters, "Name") else "Unknown_Experimenter"
+        experimenter = TestInfo.parameters.get("Name", "Unknown_Experimenter")
 
         # Locate "Bench_Test_Automation_Suite" folder dynamically
         script_dir = os.path.dirname(os.path.abspath(__file__))

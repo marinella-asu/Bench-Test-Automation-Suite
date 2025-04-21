@@ -39,6 +39,17 @@ parameters = {
         "D_Step": .1, #Step of .5V each time we elapse D_Wait
         "D_Wait": 10,
         "SaveData": True
+    },
+
+    "Switch_Test": {
+        "SMU_Pair": [1,2],
+        "num_loops": 10,
+        "Read_Voltage": 1,
+        "Max_Pos_Voltage": 12,
+        "Max_Neg_Voltage": -10,
+        "VStep": .1,
+        "IComp": 100e-3,
+        "SaveData": True
     }
     
     
@@ -50,10 +61,13 @@ parameters = {
 b1500 = B1500(unit_label = 'A', parameters=parameters)
 
 # didItShort = b1500.smu.Short_Check(b1500, "Short_Check_Test")
-# print(f"We Found a decent device?: {didItShort}")
+# print(f"We were able to short the back gate?: {didItShort}")
 
-didItWork = b1500.smu.Short_Check(b1500, "Form_Test")
-print(f"We Found a decent device?: {didItWork}")
+# didItForm = b1500.smu.Short_Check(b1500, "Form_Test")
+# print(f"We Formed the Device?: {didItForm}")
+
+didweSwitch = b1500.smu.Switching_Test(b1500, "Switch_Test")
+print(f"Did we successfully switch through all the loops?: {didweSwitch}")
 
 
 

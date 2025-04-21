@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def smu_meas_sample(self, smu_num, vmeas=0.1, icomp=100e-3, interval=10e-3, pre_bias_time=0, number=10, disconnect_after=True, plot_results=False):
+def smu_meas_sample(self, smu_num, vmeas=0.1, icomp=100e-3, interval=10e-3, pre_bias_time=0, number=10, disconnect_after=True):
     """
     Applies a DC bias to an SMU and performs repeated measurements.
 
@@ -65,18 +65,3 @@ def smu_meas_sample(self, smu_num, vmeas=0.1, icomp=100e-3, interval=10e-3, pre_
     # Disconnect SMU if required
     if disconnect_after:
         self.b1500.write(f"CL {smu_ch}")  
-
-    # Read and process data
-    data = self.b1500.read()
-    times, currents, _ = self.process_data_str_tiv(data)
-
-    # Plot results if enabled
-    plot_handles = ()
-    if plot_results:
-        fig, ax = plt.subplots()
-        ax.plot(times, currents, color='k', marker='o', ms=3, linestyle='-')
-        ax.set_xlabel('Time (s)', fontsize=14)
-        ax.set_ylabel('Current (A)', fontsize=14)
-        plot_handles = (fig, ax)
-
-    return times, currents, plot_handles
