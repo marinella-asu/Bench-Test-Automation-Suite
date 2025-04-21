@@ -1,38 +1,38 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def prg_2terminal(self, TestInfo, DEBUG_PRINT = False):
+def prg_2terminal(self, b1500, DEBUG_PRINT = False):
     v_prg_max=9.9 #Default for Voltage Program Max: If you want to change this set a Program Max Voltage parameter
-    if hasattr(TestInfo, "Program_Max_Voltage"):
-        v_prg_max = TestInfo.Program_Max_Voltage
+    if hasattr(b1500.test_info, "Program_Max_Voltage"):
+        v_prg_max = b1500.test_info.Program_Max_Voltage
     
     gmin=0e-6 #Default for GMinimum: Set a G_Minimum parameter if you want this to be different
-    if hasattr(TestInfo, "G_Minimum"):
-        gmin = TestInfo.G_Minimum
+    if hasattr(b1500.test_info, "G_Minimum"):
+        gmin = b1500.test_info.G_Minimum
     
     gmax=0e-6 #Default for GMaximum: Set a G_Maximum parameter if you want this to be different
-    if hasattr(TestInfo, "G_Maximum"):
-        gmax = TestInfo.G_Maximum
+    if hasattr(b1500.test_info, "G_Maximum"):
+        gmax = b1500.test_info.G_Maximum
 
     pulses_per_voltage=10 #Default for Pulse_Per_V
-    if hasattr(TestInfo, "Pulse_Per_V"):
-        pulses_per_voltage = TestInfo.Pulse_Per_V
+    if hasattr(b1500.test_info, "Pulse_Per_V"):
+        pulses_per_voltage = b1500.test_info.Pulse_Per_V
 
     num_pgms=1 #Defualt for Number_of_Programs
-    if hasattr(TestInfo, "Number_of_Programs"):
-        num_pgms = TestInfo.Number_of_Programs
+    if hasattr(b1500.test_info, "Number_of_Programs"):
+        num_pgms = b1500.test_info.Number_of_Programs
 
     vstep_param = .1 #Default Step Parameter
-    if hasattr(TestInfo, "V_Step"):
-        vstep_param = TestInfo.V_Step
+    if hasattr(b1500.test_info, "V_Step"):
+        vstep_param = b1500.test_info.V_Step
 
-    _, v_prg_set = TestInfo.VSS_Set #assume when I program or reset its using VSS and VDD is for read
-    _, v_prg_rst = TestInfo.VSS_Reset
+    _, v_prg_set = b1500.test_info.VSS_Set #assume when I program or reset its using VSS and VDD is for read
+    _, v_prg_rst = b1500.test_info.VSS_Reset
     v_prg = 0
 
     done = False #Done flag
 
-    results = self.rd_pulses_Resalat(TestInfo, alternate_waveform = "Evan_Reram_3")
+    results = self.rd_pulses_Resalat(b1500.test_info, alternate_waveform = "Evan_Reram_3")
     #print(f'{results[2]}')
     g_cur = sum(results[2])/len(results[2])
     #print(f"conductance {sum(results[2])/len(results[2])} and {g_cur}")
@@ -59,12 +59,12 @@ def prg_2terminal(self, TestInfo, DEBUG_PRINT = False):
         if set_done==False:
             v_prg_set = v_prg_set + vstep
             v_prg = v_prg_set
-            TestInfo.update_set(TestInfo, set_voltage = v_prg_set)
+            b1500.test_info.update_set(b1500.test_info, set_voltage = v_prg_set)
             operation = "SET"
         elif rst_done==False:
             v_prg_rst = v_prg_rst - vstep
             v_prg = v_prg_rst
-            TestInfo.update_set(TestInfo, reset_voltage = v_prg_rst)
+            b1500.test_info.update_set(b1500.test_info, reset_voltage = v_prg_rst)
             operation = "RESET"
         
         
@@ -72,20 +72,20 @@ def prg_2terminal(self, TestInfo, DEBUG_PRINT = False):
         self.wg.WGFMU_clear()
         
         # Create waveform on WGFMU
-        self.create_waveform(TestInfo)
+        self.create_waveform(b1500.test_info)
         
-        self.wgfmu_run([TestInfo.ch_vdd , TestInfo.ch_vss ])
+        self.wgfmu_run([b1500.test_info.ch_vdd , b1500.test_info.ch_vss ])
         
         ###################### SHALL IT BETTER TO USE A SEPERATE READ FUNCTION INSTEAD OF COMBINED READ WITHIN THE PROGRAM ONE?
         # Read out data
-        times1, vals1 = self.read_results( TestInfo.ch_vdd )
-        times2, vals2 = self.read_results( TestInfo.ch_vss )
+        times1, vals1 = self.read_results( b1500.test_info.ch_vdd )
+        times2, vals2 = self.read_results( b1500.test_info.ch_vss )
         
         # Close down WGFMU Session
         times = times1
         currents = vals1
         # print(f"currents {vals1}")
-        conductances = currents / TestInfo.VDD_rd
+        conductances = currents / b1500.test_info.VDD_rd
         g_cur = conductances[-1]
         current = currents[-1]
         #print(f"end of a loop: {g_cur}")

@@ -97,13 +97,15 @@ class B1500:
         self.test_info.validate_and_prompt(timeout=timeout)
         self.parameters = parameters
 
-        # if hasattr(self.test_info, "VDD_WGFMU"):
-        #     if (self.test_info.VDD_WGFMU == 1):
-        #         self.test_info.ch_vdd = self.wgfmu.wgfmus[0]
-        #         self.test_info.ch_vss = self.wgfmu.wgfmus[1]
-        #     elif (self.test_info.VDD_WGFMU == 0):
-        #         self.test_info.ch_vdd = self.wgfmu.wgfmus[1]
-        #         self.test_info.ch_vss = self.wgfmu.wgfmus[0]
+        # Setup waveform channel mapping if VDD WGFMU is defined
+        self.test_info.VDD_WGFMU = int(self.test_info.parameters.get("VDD WGFMU", 1))
+        if self.test_info.VDD_WGFMU == 1:
+            self.test_info.ch_vdd = self.wgfmu.wgfmus[0]
+            self.test_info.ch_vss = self.wgfmu.wgfmus[1]
+        else:
+            self.test_info.ch_vdd = self.wgfmu.wgfmus[1]
+            self.test_info.ch_vss = self.wgfmu.wgfmus[0]
+
 
         # VDD_waveform_data = self.test_info.parameters.get("VDD Waveform Data", None)
         # VSS_waveform_data = self.test_info.parameters.get("VSS Waveform Data", None)

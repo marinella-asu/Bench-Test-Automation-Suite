@@ -5,7 +5,7 @@ import wgfmu_consts as wgc  # Import constants for WGFMU operations
 import pandas as pd
 import numpy as np
 
-def create_waveform(self, TestInfo, patt_name="", alt_waveform = None):
+def create_waveform(self, b1500, patt_name="", alt_waveform = None):
         # drive data: tuple, (time , voltage) , both numpy vectors
         # ranging data: tuple ( time , range setting ) , numpy vector and list
         # meas data: tuple (time , Npts , interval , averaging time , mode )
@@ -43,8 +43,8 @@ def create_waveform(self, TestInfo, patt_name="", alt_waveform = None):
             meas_averaging = []
             meas_mode = []
             
-            trd = TestInfo.trd
-            pts_per_meas = TestInfo.pts_per_meas
+            trd = b1500.test_info.trd
+            pts_per_meas = b1500.test_info.pts_per_meas
             for time_entry, vdd_entry, vss_entry, label_entry, comp_entry in zip(times, labels, vdd_voltage, vss_voltage, compliance):
                 time_val = time_entry.get().strip()  # Clean time input
                 vdd_val = vdd_entry.get().strip()  # Clean VDD voltage
@@ -107,7 +107,7 @@ def create_waveform(self, TestInfo, patt_name="", alt_waveform = None):
             VSS_waveform = [waveform_data["VSS Time"], waveform_data["VSS Voltage"]]
 
             timestamp = time.perf_counter()
-            if (TestInfo.VDD_WGFMU == 1):
+            if (b1500.test_info.VDD_WGFMU == 1):
                 vector_names = [ self.cstr( f"ch{channel}_{patt_name}_{timestamp}" ) for channel in self.wgfmus]
                 for ch_ind, channel in enumerate(self.wgfmus):
                     vector_name = vector_names[ch_ind]
@@ -243,13 +243,13 @@ def create_waveform(self, TestInfo, patt_name="", alt_waveform = None):
         #
         #
         #
-        meas_data = TestInfo.waveform_data["Measurement Data"]
-        comp_data = TestInfo.waveform_data["Compliance Data"]
-        VDD_waveform = [TestInfo.waveform_data["VDD Time"], TestInfo.waveform_data["VDD Voltage"]]
-        VSS_waveform = [TestInfo.waveform_data["VSS Time"], TestInfo.waveform_data["VSS Voltage"]]
+        meas_data = b1500.test_info.waveform_data["Measurement Data"]
+        comp_data = b1500.test_info.waveform_data["Compliance Data"]
+        VDD_waveform = [b1500.test_info.waveform_data["VDD Time"], b1500.test_info.waveform_data["VDD Voltage"]]
+        VSS_waveform = [b1500.test_info.waveform_data["VSS Time"], b1500.test_info.waveform_data["VSS Voltage"]]
 
         timestamp = time.perf_counter()
-        if (TestInfo.VDD_WGFMU == 1):
+        if (b1500.test_info.VDD_WGFMU == 1):
             vector_names = [ self.cstr( f"ch{channel}_{patt_name}_{timestamp}" ) for channel in self.wgfmus]
             for ch_ind, channel in enumerate(self.wgfmus):
                 vector_name = vector_names[ch_ind]

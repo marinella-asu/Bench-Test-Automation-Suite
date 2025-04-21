@@ -20,28 +20,28 @@ import numpy as np
 #Channel 1 is VSS
 #Channel 2 is VDD
 #target conductance
-def Resalat_Program_and_Retention(self, b1500, TestInfo):
-    min_gtarget = TestInfo.parameters.get("G_Minimum", 40e-9)
-    max_gtarget = TestInfo.parameters.get("G_Maximum", 130e-9)
-    G_MAX = TestInfo.parameters.get("G_MAX", 190e-9)
-    STEP = TestInfo.parameters.get("STEP", 1)
-    g_offset = TestInfo.parameters.get("g_offset", 0.1e-9)
-    V_COUNTMAX = TestInfo.parameters.get("V_COUNTMAX", 10)
-    prog_count_max = TestInfo.parameters.get("prog_count_max", 10)
-    total_retention_time = TestInfo.parameters.get("total_retention_time", 60)
-    retention_time = TestInfo.parameters.get("retention_time", 500e-5)
-    data_points = TestInfo.parameters.get("data_points", 30000)
-    smu_num = TestInfo.parameters.get("smu_num", 4)
-    VSTART = TestInfo.parameters.get("VSTART", 0)
-    VSTOP = TestInfo.parameters.get("VSTOP", 1)
-    ICOMP = TestInfo.parameters.get("ICOMP", 0.1)
-    NSTEPS = TestInfo.parameters.get("NSTEPS", 101)
-    SWEEP_TYPE = TestInfo.parameters.get("SWEEP_TYPE", "DOUBLE")
-    v_rd = TestInfo.parameters.get("Voltage_Read", 1)
-    vprg = TestInfo.parameters.get("vprg", 4)
-    vrst = TestInfo.parameters.get("vrst", -6)
-    t_prg = TestInfo.parameters.get("t_prg", 1.9e-3)
-    v_off = TestInfo.parameters.get("v_off", 0)
+def Resalat_Program_and_Retention(self, b1500):
+    min_gtarget = b1500.test_info.parameters.get("G_Minimum", 40e-9)
+    max_gtarget = b1500.test_info.parameters.get("G_Maximum", 130e-9)
+    G_MAX = b1500.test_info.parameters.get("G_MAX", 190e-9)
+    STEP = b1500.test_info.parameters.get("STEP", 1)
+    g_offset = b1500.test_info.parameters.get("g_offset", 0.1e-9)
+    V_COUNTMAX = b1500.test_info.parameters.get("V_COUNTMAX", 10)
+    prog_count_max = b1500.test_info.parameters.get("prog_count_max", 10)
+    total_retention_time = b1500.test_info.parameters.get("total_retention_time", 60)
+    retention_time = b1500.test_info.parameters.get("retention_time", 500e-5)
+    data_points = b1500.test_info.parameters.get("data_points", 30000)
+    smu_num = b1500.test_info.parameters.get("smu_num", 4)
+    VSTART = b1500.test_info.parameters.get("VSTART", 0)
+    VSTOP = b1500.test_info.parameters.get("VSTOP", 1)
+    ICOMP = b1500.test_info.parameters.get("ICOMP", 0.1)
+    NSTEPS = b1500.test_info.parameters.get("NSTEPS", 101)
+    SWEEP_TYPE = b1500.test_info.parameters.get("SWEEP_TYPE", "DOUBLE")
+    v_rd = b1500.test_info.parameters.get("Voltage_Read", 1)
+    vprg = b1500.test_info.parameters.get("vprg", 4)
+    vrst = b1500.test_info.parameters.get("vrst", -6)
+    t_prg = b1500.test_info.parameters.get("t_prg", 1.9e-3)
+    v_off = b1500.test_info.parameters.get("v_off", 0)
 
 
 
@@ -69,7 +69,7 @@ def Resalat_Program_and_Retention(self, b1500, TestInfo):
 
     read_initial = b1500.smu.smu_meas_spot_4terminal(smu_numD=4, smu_numG=1, smu_numS=3, smu_numB=2, VDbias = v_rd, VGbias = 0,VSbias = 0, VBbias = 0 , vmeas=0.1 , icomp=100e-3 , reset_timer=True , disconnect_after=True )
     #This steps takes the raw B1500 data and turns it into clean collumns we can use
-    data = b1500.data_clean(b1500, read_initial, TestInfo.parameters, NoSave = True)
+    data = b1500.data_clean(b1500, read_initial, b1500.test_info.parameters, NoSave = True)
     time_drain = data.get("SMU4_Time", None)
     current_drain = data.get("SMU4_Current", None)
 
@@ -187,7 +187,7 @@ def Resalat_Program_and_Retention(self, b1500, TestInfo):
                                                                 plot_results=False )
                         
                         print(f'Measurement results of Program: {results}')
-                        data = b1500.data_clean(b1500, results, TestInfo.parameters, NoSave = True)
+                        data = b1500.data_clean(b1500, results, b1500.test_info.parameters, NoSave = True)
                         time_drain = data.get("SMU4_Time", None)
                         current_drain = data.get("SMU4_Current", None)
                         
@@ -206,7 +206,7 @@ def Resalat_Program_and_Retention(self, b1500, TestInfo):
                         print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
                         print(f'Spot meas Current: {current_initial}')
                         #This steps takes the raw B1500 data and turns it into clean collumns we can use
-                        data = b1500.data_clean(b1500, read_verify, TestInfo.parameters, NoSave = True)
+                        data = b1500.data_clean(b1500, read_verify, b1500.test_info.parameters, NoSave = True)
                         time_drain = data.get("SMU4_Time", None)
                         current_drain = data.get("SMU4_Current", None)
                         
@@ -264,7 +264,7 @@ def Resalat_Program_and_Retention(self, b1500, TestInfo):
                         print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n')
                         print(f'Spot meas Current: {current_initial}')
                         #This steps takes the raw B1500 data and turns it into clean collumns we can use
-                        data = b1500.data_clean(b1500, read_verify, TestInfo.parameters, NoSave = True)
+                        data = b1500.data_clean(b1500, read_verify, b1500.test_info.parameters, NoSave = True)
                         time_drain = data.get("SMU4_Time", None)
                         current_drain = data.get("SMU4_Current", None)
 
@@ -288,7 +288,7 @@ def Resalat_Program_and_Retention(self, b1500, TestInfo):
                 if verification_requirement == True:
                     read_verification = b1500.smu.smu_meas_spot_4terminal(smu_numD=4, smu_numG=1, smu_numS=3, smu_numB=2,VDbias = v_rd, VGbias = 0,VSbias = 0, VBbias = 0 , vmeas=0.1 , icomp=100e-3 , reset_timer=True , disconnect_after=True )
                     #This steps takes the raw B1500 data and turns it into clean collumns we can use
-                    data = b1500.data_clean(b1500, read_verify, TestInfo.parameters, NoSave = True)
+                    data = b1500.data_clean(b1500, read_verify, b1500.test_info.parameters, NoSave = True)
                     time_drain = data.get("SMU4_Time", None)
                     current_drain = data.get("SMU4_Current", None)
                     
@@ -302,10 +302,10 @@ def Resalat_Program_and_Retention(self, b1500, TestInfo):
                         
                     
                 # # Quick read to check conductance after program
-                # read_test = self.rd_pulses_Resalat_noise(TestInfo, alternate_waveform= "Evan_Reram_3")
+                # read_test = self.rd_pulses_Resalat_noise(b1500.test_info, alternate_waveform= "Evan_Reram_3")
                 # # ^ This was the original parameters I used, the other version below has a larger t_settle. Have to test the effects of this. #
 
-                # read_test = self.rd_pulses_Resalat_noise(TestInfo, alternate_waveform= "Evan_Reram_3")
+                # read_test = self.rd_pulses_Resalat_noise(b1500.test_info, alternate_waveform= "Evan_Reram_3")
 
 
                 # cond_test = read_test[2]
@@ -346,7 +346,7 @@ def Resalat_Program_and_Retention(self, b1500, TestInfo):
                 data_prg_list = [time_prg, curr_prg, cond_prg]
                 data_prg_array = np.array(data_prg_list)
                 
-                b1500.save_numpy_to_csv(TestInfo, data_prg_array, filename="Program_Data")
+                b1500.save_numpy_to_csv(b1500.test_info, data_prg_array, filename="Program_Data")
 
                 print("\nTarget Conductance Reached. Holding the gate voltage at -0.1 for 60s\n")
                 
@@ -388,7 +388,7 @@ def Resalat_Program_and_Retention(self, b1500, TestInfo):
                                                     plot_results=False, 
                                                     int_num=50)
                 
-                data = b1500.data_clean(b1500, results_read, TestInfo.parameters, NoSave = False)
+                data = b1500.data_clean(b1500, results_read, b1500.test_info.parameters, NoSave = False)
                 extracted_data = []
                 time_col = f"SMU{smu_numG}_Time (s)"
                 voltage_col = f"SMU{smu_numG}_Voltage (V)"
@@ -459,4 +459,4 @@ def Resalat_Program_and_Retention(self, b1500, TestInfo):
         print("Keyboard Interrupt detected. Saving the data...")
         #Close SMUs and Save Data
         b1500.connection.write("CL")
-        b1500.save_numpy_to_csv(TestInfo, all_data, filename = f"Program-Current-GD")
+        b1500.save_numpy_to_csv(b1500.test_info, all_data, filename = f"Program-Current-GD")
