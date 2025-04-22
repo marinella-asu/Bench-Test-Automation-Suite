@@ -4,56 +4,71 @@ import datetime
 import sys
 
 
-def ProgramAndRTN (self, b1500):
+def ProgramAndRTN (self,
+                    b1500=None,
+                    param_name=None,
+                    # --------- defaults ---------
+                    min_gtarget=300e-6,
+                    max_gtarget=1000e-6,
+                    num_level=7,
+                    num=30,
+                    num_reads=10,
+                    v_rd=0.1,
+                    v_prg=1.0,
+                    vstop=0.0,
+                    v_prg_max=9.8,
+                    v_count=0,
+                    v_countmax=40,
+                    goffset=1e-6,
+                    **overrides):
     now = datetime.datetime.now()
     date_time = now.strftime("%Y-%m-%d_%H-%M-%S")
 
-    min_gtarget=300e-6 #Default for GMinimum: Set a G_Minimum parameter if you want this to be different
-    if hasattr(b1500.test_info, "G_Minimum_Target"):
-        min_gtarget = b1500.test_info.G_Minimum
+        # 1)  Defaults
+    final_params = {
+        "min_gtarget": 300e-6,   # ‑‑ G_Minimum_Target
+        "max_gtarget": 1000e-6,  # ‑‑ G_Maximum_Target
+        "num_level":   7,        # ‑‑ Num_Levels
+        "num":         30,       # ‑‑ Prog_Num
+        "num_reads":   10,       # ‑‑ Prog_Num_Reads
+        "v_rd":        0.1,      # ‑‑ V_Read
+        "v_prg":       1.0,      # ‑‑ V_Prog_Start
+        "vstop":       0.0,      # ‑‑ V_Stop
+        "v_prg_max":   9.8,      # ‑‑ V_Prog_Max
+        "v_count":     0,        # (initial counter)
+        "v_countmax":  40,       # ‑‑ V_Count_Max
+        "goffset":     1e-6      # ‑‑ G_Offset
+    }
 
-    max_gtarget=1000e-6 #Default for GMinimum: Set a G_Minimum parameter if you want this to be different
-    if hasattr(b1500.test_info, "G_Maximum_Target"):
-        max_gtarget = b1500.test_info.G_Minimum
-    
-    num_level = 7 #Default for GMinimum: Set a G_Minimum parameter if you want this to be different
-    if hasattr(b1500.test_info, "G_Maximum_Target"):
-        num_level = b1500.test_info.G_Minimum
+    # 2)  Load parameter‑block values (if provided)
+    if b1500 and param_name:                       # same pattern as before
+        param_block = dict(b1500.parameters.get(param_name, {}))
+        param_block.update(overrides)              # runtime overrides win
 
-    num = 30          # Default iterations per program‑voltage level; override with Prog_Num
-    if hasattr(b1500.test_info, "Prog_Num"):
-        num = b1500.test_info.Prog_Num
+        # expose each setting as   b1500.<key>_<param_name>
+        for key, value in param_block.items():
+            setattr(b1500, f"{key}_{param_name}", value)
 
-    num_reads = 10    # Default reads per verification stage; override with Prog_Num_Reads
-    if hasattr(b1500.test_info, "Prog_Num_Reads"):
-        num_reads = b1500.test_info.Prog_Num_Reads
+        final_params.update(param_block)           # merge into master dict
 
-    v_rd = 0.1        # Default read voltage; override with V_Read
-    if hasattr(b1500.test_info, "V_Read"):
-        v_rd = b1500.test_info.V_Read
+    # 3)  If we weren’t given a param block at all, just apply overrides
+    if not b1500 or not param_name:
+        final_params.update(overrides)
 
-    v_prg = 1.0       # Starting program voltage; override with V_Prog_Start
-    if hasattr(b1500.test_info, "V_Prog_Start"):
-        v_prg = b1500.test_info.V_Prog_Start
+    # 4)  Unpack for easy use downstream
+    min_gtarget  = final_params["min_gtarget"]
+    max_gtarget  = final_params["max_gtarget"]
+    num_level    = final_params["num_level"]
+    num          = final_params["num"]
+    num_reads    = final_params["num_reads"]
+    v_rd         = final_params["v_rd"]
+    v_prg        = final_params["v_prg"]
+    vstop        = final_params["vstop"]
+    v_prg_max    = final_params["v_prg_max"]
+    v_count      = final_params["v_count"]
+    v_countmax   = final_params["v_countmax"]
+    goffset      = final_params["goffset"]
 
-    vstop = 0.0       # Stop‑voltage threshold (clamp); override with V_Stop
-    if hasattr(b1500.test_info, "V_Stop"):
-        vstop = b1500.test_info.V_Stop
-
-    v_prg_max = 9.8   # Maximum allowed program voltage; override with V_Prog_Max
-    if hasattr(b1500.test_info, "V_Prog_Max"):
-        v_prg_max = b1500.test_info.V_Prog_Max
-
-    v_count = 0       # Counter for applied program steps (initialised to 0)
-    # No override needed—this will be incremented during the algorithm
-
-    v_countmax = 40   # Maximum program steps permitted; override with V_Count_Max
-    if hasattr(b1500.test_info, "V_Count_Max"):
-        v_countmax = b1500.test_info.V_Count_Max
-
-    goffset = 1e-6    # Gate‑current offset for compliance; override with G_Offset
-    if hasattr(b1500.test_info, "G_Offset"):
-        goffset = b1500.test_info.G_Offset
 
 
     gtargets=np.linspace(min_gtarget, max_gtarget, num=num_level)
@@ -101,7 +116,7 @@ def ProgramAndRTN (self, b1500):
             print (f" the state: {succeed} with conductance: {g_d} in the range of min {gmin1} and max {gmax1}")
             if v_count >= v_countmax - 1:
                 print( f"Unable to set to the target conductance state {gtarget} due to reach the maximum number of program")
-                sys.exit(0)
+                return False
 
             v_count += 1
             print(f" \n \n \n THE STATUS OF THE PROGRAM OPERATION IS {succeed} and count is {(v_count<v_countmax)} \n \n \n")       
@@ -134,3 +149,4 @@ def ProgramAndRTN (self, b1500):
         plt.plot(times,conductances)
         plt.show()
         plt.close()
+        return True

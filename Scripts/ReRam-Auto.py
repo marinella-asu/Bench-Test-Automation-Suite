@@ -50,6 +50,21 @@ parameters = {
         "VStep": .1,
         "IComp": 100e-3,
         "SaveData": True
+    },
+
+    "Program": {
+        "min_gtarget": 300e-6,   # ‑‑ G_Minimum_Target
+        "max_gtarget": 1000e-6,  # ‑‑ G_Maximum_Target
+        "num_level":   7,        # ‑‑ Num_Levels
+        "num":         30,       # ‑‑ Prog_Num
+        "num_reads":   10,       # ‑‑ Prog_Num_Reads
+        "v_rd":        0.1,      # ‑‑ V_Read
+        "v_prg":       1.0,      # ‑‑ V_Prog_Start
+        "vstop":       0.0,      # ‑‑ V_Stop
+        "v_prg_max":   9.8,      # ‑‑ V_Prog_Max
+        "v_count":     0,        # (initial counter)
+        "v_countmax":  40,       # ‑‑ V_Count_Max
+        "goffset":     1e-6
     }
     
     
@@ -66,9 +81,11 @@ b1500 = B1500(unit_label = 'A', parameters=parameters)
 # didItForm = b1500.smu.Short_Check(b1500, "Form_Test")
 # print(f"We Formed the Device?: {didItForm}")
 
-didweSwitch = b1500.smu.Switching_Test(b1500, "Switch_Test")
-print(f"Did we successfully switch through all the loops?: {didweSwitch}")
+# didweSwitch = b1500.smu.Switching_Test(b1500, "Switch_Test")
+# print(f"Did we successfully switch through all the loops?: {didweSwitch}")
 
+didweProgram = b1500.wgfmu.ProgramAndRTN(b1500, "Program")
+print(f"Did we successfully Program?: {didweProgram}")
 
 
 
