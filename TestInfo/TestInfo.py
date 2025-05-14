@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 import wgfmu_consts as wgc
+import os
+import math
+
 
 class TestInfo:
     def __init__(self, parameters=None):
@@ -15,9 +18,6 @@ class TestInfo:
         """
         self.parameters = parameters or {}
         self.waveform_data = {}
-
-    def grab_events(self, array):
-        pass
 
     def save_and_close(self):
         """Saves waveform data and closes the GUI."""
@@ -144,26 +144,71 @@ class TestInfo:
 
         root.mainloop()
         return self.waveform_data
+    
 
     def update_waveform(self):
+        
+        def is_number(s: str) -> bool:
+            try:
+                float(s)
+                return True
+            except ValueError:
+                return False
+
+        def forward_fill(values_raw):
+            """
+            Convert a list of raw strings to floats, treating 'x' (or blank) as
+            'same as last good value'.  The series remains the SAME LENGTH.
+            """
+            filled = []
+            last_val = np.nan          # start unknown
+
+            for v in values_raw:
+                v = v.strip()
+                if v.lower() == "x" or not is_number(v):
+                    # keep previous value
+                    filled.append(last_val)
+                else:
+                    last_val = float(v)
+                    filled.append(last_val)
+
+            # If the very first entries were 'x', back‑fill them with the
+            # first real number so the line starts solid.
+            if math.isnan(filled[0]):
+                try:
+                    first_real = next(val for val in filled if not math.isnan(val))
+                    filled = [first_real if math.isnan(val) else val for val in filled]
+                except StopIteration:
+                    pass   # all NaN – leave as‑is
+
+            return filled
+            
+            
         """Updates the waveform plot."""
         try:
-            T_values = [float(entry.get()) for entry in time_entries if entry.get()]
-            VDD_values = [entry.get().strip() for entry in vdd_entries]
-            VSS_values = [entry.get().strip() for entry in vss_entries]
+            # 1) pull raw strings
+            T_raw   = [e.get().strip() for e in time_entries]
+            VDD_raw = [e.get().strip() for e in vdd_entries]
+            VSS_raw = [e.get().strip() for e in vss_entries]
 
+            # 2) numeric time axis (assume every Time box has a value)
+            T_values = [float(t) for t in T_raw]
+
+            # 3) forward‑fill the voltage lists
+            VDD_plot = forward_fill(VDD_raw)
+            VSS_plot = forward_fill(VSS_raw)
+
+            # 4) draw (use a step style so the change appears instantaneous)
             self.ax.clear()
-
-            VDD_plot = [float(v) if v.replace('.', '', 1).isdigit() else np.nan for v in VDD_values]
-            VSS_plot = [float(v) if v.replace('.', '', 1).isdigit() else np.nan for v in VSS_values]
-
-            self.ax.plot(T_values, VDD_plot, marker="o", linestyle="-", label="VDD Voltage")
-            self.ax.plot(T_values, VSS_plot, marker="s", linestyle="--", label="VSS Voltage")
+            self.ax.plot(T_values, VDD_plot, marker="o", linestyle="-",
+                        drawstyle="steps-post",  label="VDD Voltage")
+            self.ax.plot(T_values, VSS_plot, marker="s", linestyle="--",
+                        drawstyle="steps-post", label="VSS Voltage")
 
             self.ax.set_xlabel("Time")
             self.ax.set_ylabel("Voltage")
             self.ax.set_title("VDD & VSS Waveform")
-            self.ax.grid()
+            self.ax.grid(True)
             self.ax.legend()
             self.canvas.draw()
 
@@ -182,7 +227,66 @@ class TestInfo:
         Raises:
             SystemExit: If required parameters are not filled within the timeout.
         """
-        missing_params = {k: v for k, v in self.parameters.items() if v in [None, "ask"]}
+        missing_params = {k: v 
+                          for k, v in self.parameters.items()
+                          if v in [None, "ask"] and k != "Waveform Editor"}
+
+                # --- Launch waveform editor if requested ---
+        if self.parameters.get("Waveform Editor", "").lower() == "ask":
+            format_name = self.parameters.get("Waveform Format", None)
+            waveform_data_name = self.parameters.get("Waveform", None)
+            labels = []
+            
+            waveform_data_path = os.path.join("Waveforms", f"{waveform_data_name}.txt")
+            if os.path.exists(waveform_data_path):
+                with open(waveform_data_path, "r") as f:
+                    VDD_data = [line.strip() for line in f.readlines()]
+                print(f"✅ Loaded waveform format from {waveform_data_path}")
+
+            labels = []
+            times = []
+            vdd_values = []
+            vss_val = []
+            comp = []
+
+            for line in VDD_data:
+                parts = line.split()
+                label = parts[0]
+                time = float(parts[1])
+                vdd_val= float(parts[2])
+                vss_val = parts[3]
+                comp = parts[4] if len(parts) > 4 else None
+
+                labels.append(label)
+                times.append(time)
+                vdd_values.append(vdd_val)
+
+
+            # Example output
+            print("Labels:", labels)
+            print("Times:", times)
+            print("VDD:", vdd_values)
+            print("VSS:", vss_val)
+            print("Compliance:", comp)
+
+
+            # if format_name:
+            #     format_path = os.path.join("Waveforms", "Formats", f"{format_name}.txt")
+            #     waveform_data_path = os.path.join("Waveforms", f"{waveform_data_name}.txt")
+            #     if os.path.exists(format_path):
+            #         with open(format_path, "r") as f:
+            #             labels = [line.strip() for line in f.readlines()]
+            #         print(f"✅ Loaded waveform format from {format_path}")
+            #     if os.path.exists(waveform_data_path):
+            #         with open(waveform_data_path, "r") as f:
+            #             VDD_data = [line.strip() for line in f.readlines()]
+            #         print(f"✅ Loaded waveform format from {waveform_data_path}")
+            #     else:
+            #         print(f"⚠️ Format file not found: {format_path}")
+            
+            print("📈 Launching waveform editor...")
+            self.launch_waveform_editor(labels)
+
 
         if not missing_params:
             print("All parameters are set. Proceeding with the test.")
@@ -203,7 +307,7 @@ class TestInfo:
             print("Timeout reached. Exiting due to missing parameters.")
             root.quit()
             exit()
-
+        
         # Create the GUI
         root = tk.Tk()
         root.title("Parameter Input")
@@ -236,27 +340,13 @@ class TestInfo:
         root.after_cancel(timer_id)
 
         # Check if there are still missing parameters
-        remaining_missing_params = [k for k, v in self.parameters.items() if v in [None, "ask"]]
+        remaining_missing_params = {k: v 
+                                  for k, v in self.parameters.items()
+                                  if v in [None, "ask"] and k != "Waveform Editor"}
         if remaining_missing_params:
             print(f"Missing parameters: {remaining_missing_params}")
             exit(1)  # Exit if parameters are still missing
 
         print("All parameters are set. Proceeding with the test.")
 
-                # --- Launch waveform editor if requested ---
-        if self.parameters.get("Waveform Editor", "").lower() == "ask":
-            format_name = self.parameters.get("Waveform Format", None)
-            labels = []
-
-            if format_name:
-                format_path = os.path.join("Waveforms", "Formats", f"{format_name}.txt")
-                if os.path.exists(format_path):
-                    with open(format_path, "r") as f:
-                        labels = [line.strip() for line in f.readlines()]
-                    print(f"✅ Loaded waveform format from {format_path}")
-                else:
-                    print(f"⚠️ Format file not found: {format_path}")
-            
-            print("📈 Launching waveform editor...")
-            self.launch_waveform_editor(labels)
-
+        

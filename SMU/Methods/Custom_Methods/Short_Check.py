@@ -104,11 +104,13 @@ def Short_Check(self,
                 if Resistance < Max_Resistance:
                     if SaveData is True:
                         b1500.save_numpy_to_csv(b1500.test_info, SavedData, filename = "FormingDataIV")
+                    b1500.connection.write("CL")
                     return True
 
 
             if D_StartV >= Max_Voltage-.0001:
                 b1500.save_numpy_to_csv(b1500.test_info, SavedData, filename = "FormingDataIVFailed")
+                b1500.connection.write("CL")
                 return False
             D_StartV += D_Step
         
@@ -136,5 +138,8 @@ def Short_Check(self,
             Resistance = Max_Voltage / Current
 
             if Resistance < Max_Resistance:
+                b1500.connection.write("CL")
                 return True
+        
+        b1500.connection.write("CL")
         return False

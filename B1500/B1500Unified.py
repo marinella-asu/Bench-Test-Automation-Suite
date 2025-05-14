@@ -81,10 +81,10 @@ class B1500:
             print(f"⚡ WGFMU Channels: {self.wgfmus}")
 
         
-        self.resource_manager = pyvisa.ResourceManager()
-        self.connection = self._connect_to_instrument()
-        self.connection.timeout = 200000
-        # self.connection = "Connection" # THIS IS JUST FOR A TEST PLEASE CHANGE THIS FOR THE RELEASE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # self.resource_manager = pyvisa.ResourceManager()
+        # self.connection = self._connect_to_instrument()
+        # self.connection.timeout = 200000
+        self.connection = "Connection" # THIS IS JUST FOR A TEST PLEASE CHANGE THIS FOR THE RELEASE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         # Initialize SMU and WGFMU objects
         
@@ -330,7 +330,7 @@ class B1500:
 
         # Locate "Bench_Test_Automation_Suite" folder dynamically
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        while not script_dir.endswith("Bench-Test-Automation-Suite-main"):
+        while not script_dir.endswith("Bench-Test-Automation-Suite"):
             script_dir = os.path.dirname(script_dir)  # Move up one level
 
         # Ensure the data is stored inside "Bench_Test_Automation_Suite/Data"

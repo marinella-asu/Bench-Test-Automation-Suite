@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def prg_2terminal(self, b1500, DEBUG_PRINT = False):
+def prg_2terminal(self, b1500, v_prg, v_prg_max , v_rd , vstep, t_prg, ranging_rd, gmin , gmax, pulses_per_voltage, DEBUG_PRINT = False):
     v_prg_max=9.9 #Default for Voltage Program Max: If you want to change this set a Program Max Voltage parameter
     if hasattr(b1500.test_info, "Program_Max_Voltage"):
         v_prg_max = b1500.test_info.Program_Max_Voltage
@@ -28,8 +28,8 @@ def prg_2terminal(self, b1500, DEBUG_PRINT = False):
 
     _, v_prg_set = b1500.test_info.VSS_Set #assume when I program or reset its using VSS and VDD is for read
     _, v_prg_rst = b1500.test_info.VSS_Reset
-    v_prg = 0
-
+    pulse_num = 0
+    
     done = False #Done flag
 
     results = self.rd_pulses_Resalat(b1500.test_info, alternate_waveform = "Evan_Reram_3")
