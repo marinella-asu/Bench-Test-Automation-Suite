@@ -4,7 +4,7 @@ def rd_pulses_Resalat(self, b1500, alternate_waveform = None, num_reads=1, offse
     self.wg.WGFMU_clear()
     
     # Create waveform on WGFMU
-    self.create_waveform(b1500.test_info, alternate_waveform = alternate_waveform)
+    self.create_waveform(b1500, alternate_waveform = alternate_waveform)
     
     # Run pattern
     t_run = time.perf_counter()

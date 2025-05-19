@@ -57,7 +57,6 @@ def ProgramAndRTN(self,
     num_reads = final_params["num_reads"]
     v_rd = final_params["v_rd"]
     v_prg = final_params["v_prg"]
-    vstop = final_params["vstop"]
     v_prg_max = final_params["v_prg_max"]
     v_count = final_params["v_count"]
     v_countmax = final_params["v_countmax"]
@@ -74,10 +73,8 @@ def ProgramAndRTN(self,
         succeed = False
 
         while not succeed and v_count < v_countmax:
-            print(v_prg)
             results1 = self.prg_2terminal(
-                b1500, b1500.test_info.ch_vdd, b1500.test_info.ch_vss,
-                v_prg=v_prg, v_prg_max=v_prg_max, v_rd=v_rd, vstep = vstep,
+                b1500, v_prg=v_prg, v_prg_max=v_prg_max, v_rd=v_rd, vstep = vstep,
                 t_prg=100e-9, ranging_rd=self.wgc.WGFMU_MEASURE_CURRENT_RANGE_100UA,
                 gmin=gmin, gmax=gmax, pulses_per_voltage=num)
 

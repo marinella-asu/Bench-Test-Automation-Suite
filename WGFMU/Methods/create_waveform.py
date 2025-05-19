@@ -1,11 +1,12 @@
 import ctypes as ct
 import time  # Import time module for performance tracking
+from time import perf_counter
 import os
 import wgfmu_consts as wgc  # Import constants for WGFMU operations
 import pandas as pd
 import numpy as np
 
-def create_waveform(self, b1500, patt_name="", alt_waveform = None):
+def create_waveform(self, b1500, patt_name="", alternate_waveform = None):
         # drive data: tuple, (time , voltage) , both numpy vectors
         # ranging data: tuple ( time , range setting ) , numpy vector and list
         # meas data: tuple (time , Npts , interval , averaging time , mode )
@@ -21,16 +22,39 @@ def create_waveform(self, b1500, patt_name="", alt_waveform = None):
         # |
         # |  Condense this if statement if you aren't looking for alternate waveforms
         # V  
-        if alt_waveform is not None:
-            waveform_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Waveforms") 
-            waveform_folder += f"{alt_waveform}.txt"  
-            data = pd.read_csv(waveform_folder, sep='\s+', header=None, dtype=str)
-            labels = data.iloc[:, 0].tolist()
-            times = data.iloc[:, 1].astype(float).tolist()
-            vdd_voltage = data.iloc[:, 2].tolist()
-            vss_voltage = data.iloc[:, 3].tolist()
-            compliance = data.iloc[:, 4].fillna("").tolist() if data.shape[1] > 4 else [""] * len(labels)  # Handle missing compliance
+        if alternate_waveform is not None:
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            while not script_dir.endswith("Bench-Test-Automation-Suite-main"):
+                script_dir = os.path.dirname(script_dir)  # Move up one level
 
+            # Ensure the data is stored inside "Bench_Test_Automation_Suite/Data"
+            waveform_data_path = os.path.join(script_dir, "Waveforms", f"{alternate_waveform}.txt")
+            if os.path.exists(waveform_data_path):
+                with open(waveform_data_path, "r") as f:
+                    VDD_data = [line.strip() for line in f.readlines()]
+                print(f"✅ Loaded waveform from {waveform_data_path}")
+            
+            labels = []
+            times = []
+            vdd_voltage = []
+            vss_voltage = []
+            compliance = []
+            
+            for line in VDD_data:
+                parts = line.split(",")
+                label = str(parts[0])
+                time1 = float(parts[1])
+                vdd_val= float(parts[2])
+                vss_val = float(parts[3])
+                comp = str(parts[4]) if len(parts) > 4 else ""
+                
+                labels.append(label)
+                times.append(time1)
+                vdd_voltage.append(vdd_val)
+                vss_voltage.append(vss_val)
+                compliance.append(comp)
+                
+            
             VDD_time = []
             VDD_voltage = []
             VSS_time = []
@@ -42,56 +66,62 @@ def create_waveform(self, b1500, patt_name="", alt_waveform = None):
             meas_interval = []
             meas_averaging = []
             meas_mode = []
+                
             
-            trd = b1500.test_info.trd
-            pts_per_meas = b1500.test_info.pts_per_meas
-            for time_entry, vdd_entry, vss_entry, label_entry, comp_entry in zip(times, labels, vdd_voltage, vss_voltage, compliance):
-                time_val = time_entry.get().strip()  # Clean time input
-                vdd_val = vdd_entry.get().strip()  # Clean VDD voltage
-                vss_val = vss_entry.get().strip()  # Clean VSS voltage
-                label_val = label_entry.get().strip().lower()  # Convert label to lowercase for searching
-                comp_val = comp_entry.get().strip().lower()
-
-                if time_val.replace(".", "", 1).isdigit():  # Ensure time is numeric
-                    time_val = float(time_val)  # Convert to float
-
-                    # If VDD is NOT "X", store time and voltage for VDD
-                    if vdd_val != "X":
-                        VDD_time.append(time_val)
-                        VDD_voltage.append(float(vdd_val) if vdd_val.replace(".", "", 1).isdigit() else np.nan)
-
-                    # If VSS is NOT "X", store time and voltage for VSS
-                    if vss_val != "X":
-                        VSS_time.append(time_val)
-                        VSS_voltage.append(float(vss_val) if vss_val.replace(".", "", 1).isdigit() else np.nan)
-
-                    # Handle compliance
-                    if "comp" in label_val:
-                        if comp_val == "1ua":
-                            compliance_data.append((time_val, wgc.WGFMU_MEASURE_CURRENT_RANGE_1UA))
-                        elif comp_val == "10ua":
-                            compliance_data.append((time_val, wgc.WGFMU_MEASURE_CURRENT_RANGE_10UA))
-                        elif comp_val == "100ua":
-                            compliance_data.append((time_val, wgc.WGFMU_MEASURE_CURRENT_RANGE_100UA))
-                        elif comp_val == "1ma":
-                            compliance_data.append((time_val, wgc.WGFMU_MEASURE_CURRENT_RANGE_1MA))
-                        elif comp_val == "10ma":
-                            compliance_data.append((time_val, wgc.WGFMU_MEASURE_CURRENT_RANGE_10MA))
-                    
-                    compliance_literals.append(0 if comp_val == "0" else comp_val)
+            print("Labels:", labels)
+            print("Times:", times)
+            print("VDD:", vdd_voltage)
+            print("VSS:", vss_voltage)
+            print("Compliance:", compliance)
+            
+            trd = b1500.trd
+            pts_per_meas = b1500.pts_per_meas
+            for time_entry, vdd_entry, vss_entry, label_entry, comp_entry in zip(times, vdd_voltage, vss_voltage, labels, compliance):
+                time_val = time_entry  # Clean time input
+                vdd_val = vdd_entry  # Clean VDD voltage
+                vss_val = vss_entry  # Clean VSS voltage
+                label_val = str((label_entry)).lower()  # Convert label to lowercase for searching
+                comp_val = str(comp_entry).lower()
 
 
-                    # Handle measurement events
-                    if "meas" in label_val:
-                        meas_times.append(time_val)
-                        meas_pts.append(pts_per_meas)  # Default is 1
-                        meas_interval.append(trd)  # Reading duration
-                        meas_averaging.append(trd / 2)  # Averaging period
-                        meas_mode.append(wgc.WGFMU_MEASURE_EVENT_DATA_AVERAGED)  # Default averaged mode
+
+                # If VDD is NOT "X", store time and voltage for VDD
+                if vdd_val != "X":
+                    VDD_time.append(time_val)
+                    VDD_voltage.append(float(vdd_val))
+
+                # If VSS is NOT "X", store time and voltage for VSS
+                if vss_val != "X":
+                    VSS_time.append(time_val)
+                    VSS_voltage.append(float(vss_val))
+
+                # Handle compliance
+                if "comp" in label_val:
+                    if comp_val == "1ua":
+                        compliance_data.append((time_val, wgc.WGFMU_MEASURE_CURRENT_RANGE_1UA))
+                    elif comp_val == "10ua":
+                        compliance_data.append((time_val, wgc.WGFMU_MEASURE_CURRENT_RANGE_10UA))
+                    elif comp_val == "100ua":
+                        compliance_data.append((time_val, wgc.WGFMU_MEASURE_CURRENT_RANGE_100UA))
+                    elif comp_val == "1ma":
+                        compliance_data.append((time_val, wgc.WGFMU_MEASURE_CURRENT_RANGE_1MA))
+                    elif comp_val == "10ma":
+                        compliance_data.append((time_val, wgc.WGFMU_MEASURE_CURRENT_RANGE_10MA))
+                
+                compliance_literals.append(0 if comp_val == "0" else comp_val)
+
+
+                # Handle measurement events
+                if "meas" in label_val:
+                    meas_times.append(time_val)
+                    meas_pts.append(pts_per_meas)  # Default is 1
+                    meas_interval.append(trd)  # Reading duration
+                    meas_averaging.append(trd / 2)  # Averaging period
+                    meas_mode.append(wgc.WGFMU_MEASURE_EVENT_DATA_AVERAGED)  # Default averaged mode
 
             # Save the cleaned-up waveform data
             waveform_data = {
-                "Labels": [entry.get().strip() for entry in labels],
+                "Labels": [entry for entry in labels],
                 "VDD Time": VDD_time,
                 "VSS Time": VSS_time,
                 "VDD Voltage": VDD_voltage,
@@ -108,7 +138,8 @@ def create_waveform(self, b1500, patt_name="", alt_waveform = None):
 
             timestamp = time.perf_counter()
             if (b1500.test_info.VDD_WGFMU == 1):
-                vector_names = [ self.cstr( f"ch{channel}_{patt_name}_{timestamp}" ) for channel in self.wgfmus]
+                
+                vector_names = [ self.cstr((f"ch{channel}_{patt_name}_{timestamp}")) for channel in self.wgfmus]
                 for ch_ind, channel in enumerate(self.wgfmus):
                     vector_name = vector_names[ch_ind]
 
@@ -141,7 +172,7 @@ def create_waveform(self, b1500, patt_name="", alt_waveform = None):
                         
                         for ind in range(len(ranging_times)):
                             range_time = self.cf(ranging_times[ind] )
-                            range_setting =  ranging_settings[ind] 
+                            range_setting =  self.cf(ranging_settings[ind])
                             range_event_name = self.cstr( f"ch{channel}_range{ind}_{timestamp}")
                             
                             self.wg.WGFMU_setRangeEvent(vector_name, range_event_name, range_time , range_setting) #as soon as the measurement is done, change the current range we can drive enough current

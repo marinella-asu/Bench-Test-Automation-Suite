@@ -80,7 +80,7 @@ class TestInfo:
         root.quit()
         root.destroy()
 
-    def launch_waveform_editor(self, labels=None):
+    def launch_waveform_editor(self, labels=None, times = None, VDD_Values = None, VSS_Values = None, Comp = None):
         global root, label_entries, time_entries, vdd_entries, vss_entries, compliance_entries
         global measure_duration_entry, num_points_entry
 
@@ -106,18 +106,22 @@ class TestInfo:
 
             time_entry = tk.Entry(frame, width=10)
             time_entry.grid(row=i + 1, column=1)
+            time_entry.insert(0, times[i] if times and i < len(times) else "")
             time_entries.append(time_entry)
 
             vdd_entry = tk.Entry(frame, width=10)
             vdd_entry.grid(row=i + 1, column=2)
+            vdd_entry.insert(0, VDD_Values[i] if VDD_Values and i < len(VDD_Values) else "")
             vdd_entries.append(vdd_entry)
 
             vss_entry = tk.Entry(frame, width=10)
             vss_entry.grid(row=i + 1, column=3)
+            vss_entry.insert(0, VSS_Values[i] if VSS_Values and i < len(VSS_Values) else "")
             vss_entries.append(vss_entry)
 
             compliance_entry = tk.Entry(frame, width=10)
             compliance_entry.grid(row=i + 1, column=4)
+            compliance_entry.insert(0, Comp[i] if Comp and i < len(Comp) else "")
             compliance_entries.append(compliance_entry)
 
         # Extra input fields for measurement configuration
@@ -236,38 +240,47 @@ class TestInfo:
             format_name = self.parameters.get("Waveform Format", None)
             waveform_data_name = self.parameters.get("Waveform", None)
             labels = []
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            while not script_dir.endswith("Bench-Test-Automation-Suite-main"):
+                script_dir = os.path.dirname(script_dir)  # Move up one level
+
+            # Ensure the data is stored inside "Bench_Test_Automation_Suite/Data"
+            waveform_data_path = os.path.join(script_dir, "Waveforms", f"{waveform_data_name}.txt")
             
-            waveform_data_path = os.path.join("Waveforms", f"{waveform_data_name}.txt")
+            print(waveform_data_path)
             if os.path.exists(waveform_data_path):
                 with open(waveform_data_path, "r") as f:
                     VDD_data = [line.strip() for line in f.readlines()]
-                print(f"✅ Loaded waveform format from {waveform_data_path}")
+                print(f"✅ Loaded waveform from {waveform_data_path}")
 
             labels = []
             times = []
             vdd_values = []
-            vss_val = []
-            comp = []
+            vss_values = []
+            comps = []
 
             for line in VDD_data:
-                parts = line.split()
+                parts = line.split(",")
                 label = parts[0]
                 time = float(parts[1])
                 vdd_val= float(parts[2])
-                vss_val = parts[3]
-                comp = parts[4] if len(parts) > 4 else None
+                vss_val = float(parts[3])
+                comp = parts[4] if len(parts) > 4 else ""
 
                 labels.append(label)
                 times.append(time)
                 vdd_values.append(vdd_val)
+                vss_values.append(vss_val)
+                comps.append(comp)
+
 
 
             # Example output
             print("Labels:", labels)
             print("Times:", times)
             print("VDD:", vdd_values)
-            print("VSS:", vss_val)
-            print("Compliance:", comp)
+            print("VSS:", vss_values)
+            print("Compliance:", comps)
 
 
             # if format_name:
@@ -285,7 +298,7 @@ class TestInfo:
             #         print(f"⚠️ Format file not found: {format_path}")
             
             print("📈 Launching waveform editor...")
-            self.launch_waveform_editor(labels)
+            self.launch_waveform_editor(labels, times, vdd_values, vss_values, comps)
 
 
         if not missing_params:

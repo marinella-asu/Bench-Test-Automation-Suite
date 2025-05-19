@@ -1,44 +1,53 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import datetime
 
-def prg_2terminal(self, b1500, v_prg, v_prg_max , v_rd , vstep, t_prg, ranging_rd, gmin , gmax, pulses_per_voltage, DEBUG_PRINT = False):
-    v_prg_max=9.9 #Default for Voltage Program Max: If you want to change this set a Program Max Voltage parameter
-    if hasattr(b1500.test_info, "Program_Max_Voltage"):
-        v_prg_max = b1500.test_info.Program_Max_Voltage
-    
-    gmin=0e-6 #Default for GMinimum: Set a G_Minimum parameter if you want this to be different
-    if hasattr(b1500.test_info, "G_Minimum"):
-        gmin = b1500.test_info.G_Minimum
-    
-    gmax=0e-6 #Default for GMaximum: Set a G_Maximum parameter if you want this to be different
-    if hasattr(b1500.test_info, "G_Maximum"):
-        gmax = b1500.test_info.G_Maximum
+def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_prg_max = 9.8, v_rd = .1, vstep = 0.1, gmin = 300e-6, gmax = 1000e-6, pulses_per_voltage = 30, **overrides):
 
-    pulses_per_voltage=10 #Default for Pulse_Per_V
-    if hasattr(b1500.test_info, "Pulse_Per_V"):
-        pulses_per_voltage = b1500.test_info.Pulse_Per_V
+    now = datetime.datetime.now()
+    date_time = now.strftime("%Y-%m-%d_%H-%M-%S")
 
-    num_pgms=1 #Defualt for Number_of_Programs
-    if hasattr(b1500.test_info, "Number_of_Programs"):
-        num_pgms = b1500.test_info.Number_of_Programs
+    final_params = {
+        "v_prg": v_prg,
+        "v_prg_max": v_prg_max,
+        "v_rd": v_rd,
+        "vstep": vstep,
+        "gmin": gmin,
+        "gmax": gmax,
+        "pulses_per_voltage": pulses_per_voltage
+    }
 
-    vstep_param = .1 #Default Step Parameter
-    if hasattr(b1500.test_info, "V_Step"):
-        vstep_param = b1500.test_info.V_Step
+    if b1500 and param_name:
+        param_block = dict(b1500.parameters.get(param_name, {}))
+        param_block.update(overrides)
+        for key, value in param_block.items():
+            setattr(b1500, f"{key}_{param_name}", value)
+        final_params.update(param_block)
 
-    _, v_prg_set = b1500.test_info.VSS_Set #assume when I program or reset its using VSS and VDD is for read
-    _, v_prg_rst = b1500.test_info.VSS_Reset
+    if not b1500 or not param_name:
+        final_params.update(overrides)
+
+    v_prg = final_params["v_prg"]
+    v_prg_max = final_params["v_prg_max"]
+    v_rd = final_params["v_rd"]
+    vstep = final_params["vstep"]
+    gmin = final_params["gmin"]
+    gmax =  final_params["gmax"]
+    pulses_per_voltage = final_params["pulses_per_voltage"]
+
+
+    v_prg_set = v_prg
+    v_prg_rst = -v_prg
+
     pulse_num = 0
     
     done = False #Done flag
-
-    results = self.rd_pulses_Resalat(b1500.test_info, alternate_waveform = "Evan_Reram_3")
+    
+    results = self.rd_pulses_Resalat(b1500, alternate_waveform = "Evan_Reram_4")
     #print(f'{results[2]}')
     g_cur = sum(results[2])/len(results[2])
     #print(f"conductance {sum(results[2])/len(results[2])} and {g_cur}")
     #g_cur = st.mean([results[1][2], results[2][2], results[3][2], results[4][2]])
-    if DEBUG_PRINT:
-        print( f"..Init Level Read: {g_cur*1e9:.4g} nS [{gmin*1e9:.4g} nS, {gmax*1e9:.4g} nS] ")
     ##############################################
     
     if (g_cur >= gmin) and (g_cur <= gmax):
@@ -57,14 +66,12 @@ def prg_2terminal(self, b1500, v_prg, v_prg_max , v_rd , vstep, t_prg, ranging_r
         
         print(f"value of conductance {g_cur:.4g}, SET {set_done}, RESET {rst_done}, and DONE {done}")
         if set_done==False:
-            v_prg_set = v_prg_set + vstep
+            v_prg_set = v_prg_set + vstep_increment
             v_prg = v_prg_set
-            b1500.test_info.update_set(b1500.test_info, set_voltage = v_prg_set)
             operation = "SET"
         elif rst_done==False:
-            v_prg_rst = v_prg_rst - vstep
+            v_prg_rst = v_prg_rst - vstep_increment
             v_prg = v_prg_rst
-            b1500.test_info.update_set(b1500.test_info, reset_voltage = v_prg_rst)
             operation = "RESET"
         
         
@@ -89,15 +96,13 @@ def prg_2terminal(self, b1500, v_prg, v_prg_max , v_rd , vstep, t_prg, ranging_r
         g_cur = conductances[-1]
         current = currents[-1]
         #print(f"end of a loop: {g_cur}")
-        if DEBUG_PRINT:
-            print( f"{operation}   {v_prg:.4g} V \t {g_cur*1e9:.4g} nS \t [{gmin*1e9:.4g} nS,{gmax*1e9:.4g}] nS {done} \t  ({current*1e6:.3g} uA)" )
             
         
         pulse_num += 1
         if (pulse_num<pulses_per_voltage):
-            vstep = 0
+            vstep_increment = 0
         else:
-            vstep = vstep_param
+            vstep_increment = vstep
             pulse_num = 0
         # level_num = np.floor( pulse_num / pulses_per_voltage )
         # vstep = level_num*vstep

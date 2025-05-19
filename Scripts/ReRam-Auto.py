@@ -15,8 +15,8 @@ parameters = {
     "Waveform Editor": "ask",  
     "VDD WGFMU": 1,
     "VSS WGFMU": 2,
-    "Interval": 1.5e-3,
-    "data points": 300,
+    "trd": 1e-3,
+    "pts_per_meas" : 10,
     
     "Short_Check_Test": { #Must have "_" instead of " "
         "SMU_Pair": [1, 2], #Measure 1 Ground 2
@@ -32,7 +32,7 @@ parameters = {
     #Check For a Short between two SMUS this is a contact measurement
     "Form_Test": { #Must have "_" instead of " "
         "SMU_Pair": [4, 3], #Measure 1 Ground 2
-        "Max_Resistance": 900, #200 Ohms or less is a short
+        "Max_Resistance": 200, #200 Ohms or less is a short
         "Max_Voltage": 5, #Max Voltage We can use
         "Dynamic_Check": True, #Do an aautomatic Ramp
         "D_StartV": 1,
@@ -60,7 +60,6 @@ parameters = {
         "num_reads":   10,       # ‑‑ Prog_Num_Reads
         "v_rd":        0.1,      # ‑‑ V_Read
         "v_prg":       1,      # ‑‑ V_Prog_Start
-        "vstop":       0.0,      # ‑‑ V_Stop
         "v_prg_max":   9.8,      # ‑‑ V_Prog_Max
         "v_count":     0,        # (initial counter)
         "v_countmax":  40,       # ‑‑ V_Count_Max

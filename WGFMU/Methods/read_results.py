@@ -1,7 +1,7 @@
 import ctypes as ct  # Import C types for low-level interaction
 import numpy as np  # Import NumPy for handling numerical data
 
-def fetch_wgfmu_results(self, channel_id):
+def read_results(self, channel_id):
     """
     Retrieves measurement results from a specified WGFMU channel.
 

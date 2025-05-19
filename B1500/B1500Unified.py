@@ -14,6 +14,7 @@ import pandas as pd
 from datetime import datetime
 import re
 import wgfmu_consts as wgc
+from typing import Any, Dict
 
 # Unit type mapping from the B1500 documentation
 UNIT_MAP = {
@@ -39,7 +40,7 @@ CHANNEL_MAP = {
 
 # Define configurations for each B1500 unit
 B1500_CONFIG = {
-    "A": {"gpib_address": 17, "smu_channels": [301, 401, 501, 601], "wgfmu_channels": [101, 102]},
+    "A": {"gpib_address": 17, "smu_channels": [301, 401, 501, 601], "wgfmu_channels": [201, 202]},
     "B": {"gpib_address": 18, "smu_channels": [302, 402, 502, 602], "wgfmu_channels": [103, 104]}, #Change
     "C": {"gpib_address": 19, "smu_channels": [303, 403, 503, 603], "wgfmu_channels": [105, 106]}, #Change 
     "D": {"gpib_address": 20, "smu_channels": [304, 404, 504, 604], "wgfmu_channels": [107, 108]}, #Change
@@ -81,16 +82,15 @@ class B1500:
             print(f"⚡ WGFMU Channels: {self.wgfmus}")
 
         
-        # self.resource_manager = pyvisa.ResourceManager()
-        # self.connection = self._connect_to_instrument()
-        # self.connection.timeout = 200000
-        self.connection = "Connection" # THIS IS JUST FOR A TEST PLEASE CHANGE THIS FOR THE RELEASE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        self.resource_manager = pyvisa.ResourceManager()
+        self.connection = self._connect_to_instrument()
+        self.connection.timeout = 200000
+        # self.connection = "Connection" # THIS IS JUST FOR A TEST PLEASE CHANGE THIS FOR THE RELEASE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         # Initialize SMU and WGFMU objects
         
         self.smu = SMU(self.connection, self.smus)
-        self.wgfmu = WGFMU(self.connection, self.wgfmus)
-        
+        self.wgfmu = WGFMU(self.connection, self.wgfmus, self.gpib_address)
 
         # Initialize TestInfo and validate parameters
         self.test_info = TestInfo(parameters or {})
@@ -141,6 +141,15 @@ class B1500:
         connection.write("*rst; status:preset; *cls")
         print(f"Connected to B1500 at {self.gpib_address}")
         return connection
+
+    def _get_final_params(defaults: Dict[str, Any],
+                        block: Dict[str, Any],
+                        overrides: Dict[str, Any]) -> Dict[str, Any]:
+        """Return one dict where caller overrides > block > library defaults."""
+        params = defaults.copy()
+        params.update(block)       # second priority
+        params.update(overrides)   # highest priority
+        return params
 
     def save_data(self, data, file_path, column_labels=None):
         """
