@@ -11,7 +11,8 @@ def Switch_Test(self,
                 Max_Pos_Voltage=12,
                 Max_Neg_Voltage=-10,
                 VStep=0.1,
-                IComp=100e-3,
+                ICompSet=100e-3,
+                ICompReset=100e-3,
                 SaveData=False,
                 **overrides):
 
@@ -23,7 +24,8 @@ def Switch_Test(self,
         "Max_Pos_Voltage": Max_Pos_Voltage,
         "Max_Neg_Voltage": Max_Neg_Voltage,
         "VStep": VStep,
-        "IComp": IComp,
+        "ICompSet": ICompSet,
+        "ICompReset": ICompReset,
         "SaveData": SaveData
     }
 
@@ -41,7 +43,8 @@ def Switch_Test(self,
     # Unpack final parameters
     SMU_Pair        = final_params["SMU_Pair"]
     SaveData        = final_params["SaveData"]
-    IComp           = final_params["IComp"]
+    ICompSet        = final_params["ICompSet"]
+    ICompReset      = final_params["ICompReset"]
     Read_Voltage    = final_params["Read_Voltage"]
     Max_Neg_Voltage = final_params["Max_Neg_Voltage"]
     Max_Pos_Voltage = final_params["Max_Pos_Voltage"]
@@ -64,12 +67,13 @@ def Switch_Test(self,
     # Preallocate data: voltages in first column
     IVData = np.zeros((num_points, num_loops + 1))
     IVData[:, 0] = full_voltage_sweep
-    
+    Memory_Windows = []
+
     #
     # Initial Read Measurement
     #
-    self.bias_smu(SMU_Pair[1], 0, IComp)
-    self.smu_meas_sample(SMU_Pair[0], vmeas=Read_Voltage, icomp=IComp,
+    self.bias_smu(SMU_Pair[1], 0, ICompSet)
+    self.smu_meas_sample(SMU_Pair[0], vmeas=Read_Voltage, icomp=ICompSet,
                          interval=10e-3, pre_bias_time=100e-3, number=1,
                          disconnect_after=True)
     data = b1500.connection.read()
@@ -84,7 +88,7 @@ def Switch_Test(self,
 
         # --- Positive Sweep ---
         for v in full_voltage_sweep[:len(positive_sweep)]:
-            self.smu_meas_sample(SMU_Pair[0], vmeas=v, icomp=IComp,
+            self.smu_meas_sample(SMU_Pair[0], vmeas=v, icomp=ICompSet,
                                  interval=10e-3, pre_bias_time=0, number=1,
                                  disconnect_after=True)
             data = b1500.connection.read()
@@ -100,25 +104,21 @@ def Switch_Test(self,
                 b1500.connection.write("CL")
                 return False
 
-        # --- Memory Window Check ---
-        self.smu_meas_sample(SMU_Pair[0], vmeas=Read_Voltage, icomp=IComp,
-                             interval=10e-3, pre_bias_time=0, number=1,
-                             disconnect_after=True)
+        #
+        # Set Read Measurement
+        #
+        self.bias_smu(SMU_Pair[1], 0, ICompSet)
+        self.smu_meas_sample(SMU_Pair[0], vmeas=Read_Voltage, icomp=ICompSet,
+                            interval=10e-3, pre_bias_time=100e-3, number=1,
+                            disconnect_after=True)
         data = b1500.connection.read()
         data = b1500.data_clean(b1500, data, b1500.test_info.parameters, NoSave=True)
-        Final_Read = abs(data.get(f"SMU{SMU_Pair[0]}_Current", None).astype(float)).item()
-        Memory_Window = Final_Read / Initial_Read
+        Initial_Read = abs(data.get(f"SMU{SMU_Pair[0]}_Current", None).astype(float)).item()
 
-        if Memory_Window <= 0.5:
-            print(f"[FAIL] Memory Window too small: {Memory_Window}")
-            if SaveData is True:
-                b1500.save_numpy_to_csv(b1500.test_info, IVData, filename="SwitchingDataIVFailed")
-            b1500.connection.write("CL")
-            return False
 
         # --- Negative Sweep ---
         for v in full_voltage_sweep[len(positive_sweep):]:
-            self.smu_meas_sample(SMU_Pair[0], vmeas=v, icomp=IComp,
+            self.smu_meas_sample(SMU_Pair[0], vmeas=v, icomp=ICompReset,
                                  interval=10e-3, pre_bias_time=0, number=1,
                                  disconnect_after=True)
             data = b1500.connection.read()
@@ -133,7 +133,25 @@ def Switch_Test(self,
                     b1500.save_numpy_to_csv(b1500.test_info, IVData, filename="SwitchingDataIVFailed")
                 b1500.connection.write("CL")
                 return False
+        
+        # --- Memory Window Check ---
+        self.smu_meas_sample(SMU_Pair[0], vmeas=Read_Voltage, icomp=ICompSet,
+                             interval=10e-3, pre_bias_time=0, number=1,
+                             disconnect_after=True)
+        data = b1500.connection.read()
+        data = b1500.data_clean(b1500, data, b1500.test_info.parameters, NoSave=True)
+        Final_Read = abs(data.get(f"SMU{SMU_Pair[0]}_Current", None).astype(float)).item()
+        Memory_Window = Final_Read / Initial_Read
+        print(f"Memory Window of sweep {loopnumber} is: {Memory_Window}")
+        Memory_Windows.append(Memory_Window)
 
+        if Memory_Window <= 0.5:
+            print(f"[FAIL] Memory Window too small: {Memory_Window}")
+            if SaveData is True:
+                b1500.save_numpy_to_csv(b1500.test_info, IVData, filename="SwitchingDataIVFailed")
+            b1500.connection.write("CL")
+            return False
+        
         # Store all current values in the respective loop column
         IVData[:, loopnumber + 1] = np.array(currents)
 
@@ -144,6 +162,9 @@ def Switch_Test(self,
     if SaveData is True:
         b1500.save_numpy_to_csv(b1500.test_info, IVData, filename="SwitchingDataIVSuccess")
 
+    for loopnumber in range(num_loops):
+        print(f"Memory Window of sweep {loopnumber} is: {Memory_Windows[loopnumber]}")
+        
     # Plot all loops
     plt.figure(figsize=(7, 5))
     for i in range(1, num_loops + 1):
@@ -156,3 +177,4 @@ def Switch_Test(self,
     plt.legend()
     plt.tight_layout()
     plt.show()
+    return True

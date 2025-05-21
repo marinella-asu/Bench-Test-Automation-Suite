@@ -77,13 +77,11 @@ def create_waveform(self, b1500, patt_name="", alternate_waveform = None):
             trd = b1500.trd
             pts_per_meas = b1500.pts_per_meas
             for time_entry, vdd_entry, vss_entry, label_entry, comp_entry in zip(times, vdd_voltage, vss_voltage, labels, compliance):
-                time_val = time_entry  # Clean time input
-                vdd_val = vdd_entry  # Clean VDD voltage
-                vss_val = vss_entry  # Clean VSS voltage
+                time_val = time_entry 
+                vdd_val = vdd_entry  
+                vss_val = vss_entry
                 label_val = str((label_entry)).lower()  # Convert label to lowercase for searching
                 comp_val = str(comp_entry).lower()
-
-
 
                 # If VDD is NOT "X", store time and voltage for VDD
                 if vdd_val != "X":
@@ -107,9 +105,8 @@ def create_waveform(self, b1500, patt_name="", alternate_waveform = None):
                         compliance_data.append((time_val, wgc.WGFMU_MEASURE_CURRENT_RANGE_1MA))
                     elif comp_val == "10ma":
                         compliance_data.append((time_val, wgc.WGFMU_MEASURE_CURRENT_RANGE_10MA))
-                
-                compliance_literals.append(0 if comp_val == "0" else comp_val)
 
+                    print(f"UNKNOWN COMPLIANCE VALUE INPUT: {comp_val}\n##########################\n")
 
                 # Handle measurement events
                 if "meas" in label_val:

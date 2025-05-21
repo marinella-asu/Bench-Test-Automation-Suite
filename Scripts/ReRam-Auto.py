@@ -22,6 +22,7 @@ parameters = {
         "SMU_Pair": [1, 2], #Measure 1 Ground 2
         "Max_Resistance": 10000, #200 Ohms or less is a short
         "Max_Voltage": 3, #Max Voltage We can use
+        "IComp": 100e-3,
         "Dynamic_Check": True, #Do an aautomatic Ramp
         "D_StartV": .1,
         "D_Step": .1, #Step of .5V each time we elapse D_Wait
@@ -34,6 +35,7 @@ parameters = {
         "SMU_Pair": [4, 3], #Measure 1 Ground 2
         "Max_Resistance": 200, #200 Ohms or less is a short
         "Max_Voltage": 5, #Max Voltage We can use
+        "IComp": 100e-3,
         "Dynamic_Check": True, #Do an aautomatic Ramp
         "D_StartV": 1,
         "D_Step": .1, #Step of .5V each time we elapse D_Wait
@@ -44,11 +46,12 @@ parameters = {
     "Switch_Test": {
         "SMU_Pair": [1,2],
         "num_loops": 10,
-        "Read_Voltage": 1,
+        "Read_Voltage": .1,
         "Max_Pos_Voltage": 3,
         "Max_Neg_Voltage": -2.5,
         "VStep": .1,
-        "IComp": 100e-3, #Add in different positive versus negative compliance
+        "ICompSet ": 100e-3, #Add in different positive versus negative compliance
+        "ICompReset ": 100e-3,
         "SaveData": True
     },
 
