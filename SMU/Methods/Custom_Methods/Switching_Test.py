@@ -6,7 +6,7 @@ def Switch_Test(self,
                 b1500=None, 
                 param_name=None,
                 SMU_Pair=[1, 2],
-                num_loops=10,
+                num_loops=2,
                 Read_Voltage=1,
                 Max_Pos_Voltage=12,
                 Max_Neg_Voltage=-10,
@@ -98,6 +98,9 @@ def Switch_Test(self,
 
             if v >= 5 and Current < 10e-9:
                 print(f"[FAIL] Current < 10nA: {Current} A at V={v}V (Positive sweep, Loop {loopnumber + 1})")
+                b1500.connection.write("CL")
+                for loopnumber in len(Memory_Windows):
+                    print(f"Memory Window of sweep {loopnumber} is: {Memory_Windows[loopnumber]}")
                 IVData[:, loopnumber + 1] = np.pad(currents, (0, num_points - len(currents)), 'constant')
                 if SaveData is True:
                     b1500.save_numpy_to_csv(b1500.test_info, IVData, filename="SwitchingDataIVFailed")
@@ -128,6 +131,9 @@ def Switch_Test(self,
 
             if v <= -5 and Current < 10e-9:
                 print(f"[FAIL] Current < 10nA: {Current} A at V={v}V (Negative sweep, Loop {loopnumber + 1})")
+                b1500.connection.write("CL")
+                for loopnumber in len(Memory_Windows):
+                    print(f"Memory Window of sweep {loopnumber} is: {Memory_Windows[loopnumber]}")
                 IVData[:, loopnumber + 1] = np.pad(currents, (0, num_points - len(currents)), 'constant')
                 if SaveData is True:
                     b1500.save_numpy_to_csv(b1500.test_info, IVData, filename="SwitchingDataIVFailed")
@@ -141,12 +147,16 @@ def Switch_Test(self,
         data = b1500.connection.read()
         data = b1500.data_clean(b1500, data, b1500.test_info.parameters, NoSave=True)
         Final_Read = abs(data.get(f"SMU{SMU_Pair[0]}_Current", None).astype(float)).item()
-        Memory_Window = Final_Read / Initial_Read
-        print(f"Memory Window of sweep {loopnumber} is: {Memory_Window}")
+        Memory_Window = (Final_Read / Initial_Read) 
+        print(f"\n\n\nMemory Window of sweep {loopnumber} is: {Memory_Window}")
+        print(f"Set conductance of {Final_Read / Read_Voltage}. Reset Conductance of {Initial_Read / Read_Voltage}\n\n\n")
         Memory_Windows.append(Memory_Window)
 
         if Memory_Window <= 0.5:
             print(f"[FAIL] Memory Window too small: {Memory_Window}")
+            b1500.connection.write("CL")
+            for loopnumber in len(Memory_Windows):
+                print(f"Memory Window of sweep {loopnumber} is: {Memory_Windows[loopnumber]}")
             if SaveData is True:
                 b1500.save_numpy_to_csv(b1500.test_info, IVData, filename="SwitchingDataIVFailed")
             b1500.connection.write("CL")
@@ -154,7 +164,8 @@ def Switch_Test(self,
         
         # Store all current values in the respective loop column
         IVData[:, loopnumber + 1] = np.array(currents)
-
+        
+    b1500.connection.write("CL")
     #
     # Final Save and Plot
     #
@@ -177,4 +188,5 @@ def Switch_Test(self,
     plt.legend()
     plt.tight_layout()
     plt.show()
+    
     return True

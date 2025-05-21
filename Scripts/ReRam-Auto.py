@@ -10,47 +10,47 @@ parameters = {
     "Die Number": 1,
     "Device Number": 67,
 
-    "Waveform Format": "Reram",  # Loads "Reram.txt"
-    "Waveform": "Evan_Reram_4",
-    "Waveform Editor": "ask",  
-    "VDD WGFMU": 1,
-    "VSS WGFMU": 2,
-    "trd": 1e-3,
-    "pts_per_meas" : 10,
+    # "Waveform Format": "Reram",  # Loads "Reram.txt"
+    # "Waveform": "Evan_Reram_4",
+    # "Waveform Editor": "ask",  
+    # "VDD WGFMU": 1,
+    # "VSS WGFMU": 2,
+    # "trd": 1e-3,
+    # "pts_per_meas" : 10,
     
     "Short_Check_Test": { #Must have "_" instead of " "
-        "SMU_Pair": [1, 2], #Measure 1 Ground 2
-        "Max_Resistance": 10000, #200 Ohms or less is a short
+        "SMU_Pair": [2, 1], #Measure 1 Ground 2
+        "Max_Resistance": 200, #200 Ohms or less is a short
         "Max_Voltage": 3, #Max Voltage We can use
         "IComp": 100e-3,
         "Dynamic_Check": True, #Do an aautomatic Ramp
         "D_StartV": .1,
-        "D_Step": .1, #Step of .5V each time we elapse D_Wait
+        "D_Step": .5, #Step of .5V each time we elapse D_Wait
         "D_Wait": 10,
         "SaveData": True
     },
     
     #Check For a Short between two SMUS this is a contact measurement
     "Form_Test": { #Must have "_" instead of " "
-        "SMU_Pair": [4, 3], #Measure 1 Ground 2
-        "Max_Resistance": 200, #200 Ohms or less is a short
-        "Max_Voltage": 5, #Max Voltage We can use
-        "IComp": 100e-3,
+        "SMU_Pair": [2, 1], #Measure 1 Ground 2
+        "Max_Resistance": 10000, #200 Ohms or less is a short
+        "Max_Voltage": 7, #Max Voltage We can use
+        "IComp": 1e-3,
         "Dynamic_Check": True, #Do an aautomatic Ramp
         "D_StartV": 1,
-        "D_Step": .1, #Step of .5V each time we elapse D_Wait
+        "D_Step": .5, #Step of .5V each time we elapse D_Wait
         "D_Wait": 10,
         "SaveData": True
     },
 
     "Switch_Test": {
-        "SMU_Pair": [1,2],
-        "num_loops": 10,
-        "Read_Voltage": .1,
-        "Max_Pos_Voltage": 3,
-        "Max_Neg_Voltage": -2.5,
-        "VStep": .1,
-        "ICompSet ": 100e-3, #Add in different positive versus negative compliance
+        "SMU_Pair": [2,1],
+        "num_loops": 2,
+        "Read_Voltage": 1,
+        "Max_Pos_Voltage": 2,
+        "Max_Neg_Voltage": -1.8,
+        "VStep": .02,
+        "ICompSet ": 1e-3, #Add in different positive versus negative compliance
         "ICompReset ": 100e-3,
         "SaveData": True
     },
@@ -77,16 +77,16 @@ parameters = {
 b1500 = B1500(unit_label = 'A', parameters=parameters)
 
 # didItShort = b1500.smu.Short_Check(b1500, "Short_Check_Test")
-# print(f"We were able to short the back gate?: {didItShort}")
+# print(f"We were able to short the two pads?: {didItShort}")
 
 # didItForm = b1500.smu.Short_Check(b1500, "Form_Test")
 # print(f"We Formed the Device?: {didItForm}")
 
-# didweSwitch = b1500.smu.Switch_Test(b1500, "Switch_Test")
-# print(f"Did we successfully switch through all the loops?: {didweSwitch}")
+didweSwitch = b1500.smu.Switch_Test(b1500, "Switch_Test")
+print(f"Did we successfully switch through all the loops?: {didweSwitch}")
 
-didweProgram = b1500.wgfmu.ProgramAndRTN(b1500, "Program")
-print(f"Did we successfully Program?: {didweProgram}")
+# didweProgram = b1500.wgfmu.ProgramAndRTN(b1500, "Program")
+# print(f"Did we successfully Program?: {didweProgram}")
 
 
 

@@ -339,7 +339,7 @@ class B1500:
 
         # Locate "Bench_Test_Automation_Suite" folder dynamically
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        while not script_dir.endswith("Bench-Test-Automation-Suite"):
+        while not script_dir.endswith("Bench-Test-Automation-Suite-main"):
             script_dir = os.path.dirname(script_dir)  # Move up one level
 
         # Ensure the data is stored inside "Bench_Test_Automation_Suite/Data"
