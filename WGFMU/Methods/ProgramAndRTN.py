@@ -19,6 +19,8 @@ def ProgramAndRTN(self,
                   v_count=0,
                   v_countmax=40,
                   goffset=1e-6,
+                  read_waveform = None,
+                  program_waveform = None,
                   **overrides):
 
     now = datetime.datetime.now()
@@ -36,7 +38,9 @@ def ProgramAndRTN(self,
         "v_prg_max": v_prg_max,
         "v_count": v_count,
         "v_countmax": v_countmax,
-        "goffset": goffset
+        "goffset": goffset,
+        "read_waveform": read_waveform,
+        "program_waveform": program_waveform
     }
 
     if b1500 and param_name:
@@ -61,6 +65,8 @@ def ProgramAndRTN(self,
     v_count = final_params["v_count"]
     v_countmax = final_params["v_countmax"]
     goffset = final_params["goffset"]
+    read_waveform = final_params["read_waveform"]
+    program_waveform = final_params["program_waveform"]
 
     gtargets = np.linspace(min_gtarget, max_gtarget, num=num_level)
     print("###################################")
@@ -76,7 +82,7 @@ def ProgramAndRTN(self,
             results1 = self.prg_2terminal(
                 b1500, v_prg=v_prg, v_prg_max=v_prg_max, v_rd=v_rd, vstep = vstep,
                 t_prg=100e-9, ranging_rd=self.wgc.WGFMU_MEASURE_CURRENT_RANGE_100UA,
-                gmin=gmin, gmax=gmax, pulses_per_voltage=num)
+                gmin=gmin, gmax=gmax, pulses_per_voltage=num, read_waveform = read_waveform, program_waveform = program_waveform)
 
             self.wg.WGFMU_setForceDelay(b1500.test_info.ch_vdd, 100)
             self.wg.WGFMU_setForceDelay(b1500.test_info.ch_vss, 100)
@@ -89,7 +95,7 @@ def ProgramAndRTN(self,
                 rd_period=100e-3, meas_pts=1, meas_interval=-1, meas_averaging=-1,
                 t_rise=100e-9, v_rd=v_rd, v_off=0.0,
                 range_rd=self.wgc.WGFMU_MEASURE_CURRENT_RANGE_100UA,
-                offset_times=False, wgfmu_open_first=True, wgfmu_close_after=True)
+                offset_times=False, wgfmu_open_first=True, wgfmu_close_after=True, alternate_waveform = read_waveform)
 
             all_except_first = results[2][1:]
             g_d = sum(all_except_first) / len(all_except_first)
@@ -118,7 +124,7 @@ def ProgramAndRTN(self,
             rd_period=100e-3, meas_pts=1, meas_interval=-1, meas_averaging=-1,
             t_rise=100e-9, v_rd=v_rd, v_off=0.0,
             range_rd=self.wgc.WGFMU_MEASURE_CURRENT_RANGE_100UA,
-            offset_times=False, wgfmu_open_first=True, wgfmu_close_after=True)
+            offset_times=False, wgfmu_open_first=True, wgfmu_close_after=True, alternatewaveform = read_waveform)
 
         times, currents, conductances = results2
         plt.figure()

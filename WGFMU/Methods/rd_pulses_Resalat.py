@@ -17,7 +17,7 @@ def rd_pulses_Resalat(self, b1500, alternate_waveform = None, num_reads=1, offse
     # Close down WGFMU Session
     times = times1
     currents = vals1
-    conductances = currents / (b1500.test_info.VDD_rd)
+    conductances = currents / (.1) #CHANGE THIS WE NEED TO MAKE THE READ VOLTAGE INPUT HERE ITS HARD CODED FOR NOW
     
     if offset_times:
         times += t_run

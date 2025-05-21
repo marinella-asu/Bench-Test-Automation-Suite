@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 
-def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_prg_max = 9.8, v_rd = .1, vstep = 0.1, gmin = 300e-6, gmax = 1000e-6, pulses_per_voltage = 30, **overrides):
+def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_prg_max = 9.8, v_rd = .1, vstep = 0.1, gmin = 300e-6, gmax = 1000e-6, pulses_per_voltage = 30, read_waveform = "Evan_Reram_4", program_waveform = "Evan_Reram_4", **overrides):
 
     now = datetime.datetime.now()
     date_time = now.strftime("%Y-%m-%d_%H-%M-%S")
@@ -14,7 +14,9 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_prg_max = 9.8,
         "vstep": vstep,
         "gmin": gmin,
         "gmax": gmax,
-        "pulses_per_voltage": pulses_per_voltage
+        "pulses_per_voltage": pulses_per_voltage,
+        "read_waveform" : read_waveform,
+        "program_waveform" : program_waveform
     }
 
     if b1500 and param_name:
@@ -34,6 +36,8 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_prg_max = 9.8,
     gmin = final_params["gmin"]
     gmax =  final_params["gmax"]
     pulses_per_voltage = final_params["pulses_per_voltage"]
+    read_waveform = final_params["read_waveform"]
+    program_waveform = final_params["program_waveform"]
 
 
     v_prg_set = v_prg
@@ -43,7 +47,7 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_prg_max = 9.8,
     
     done = False #Done flag
     
-    results = self.rd_pulses_Resalat(b1500, alternate_waveform = "Evan_Reram_4")
+    results = self.rd_pulses_Resalat(b1500, alternate_waveform = read_waveform)
     #print(f'{results[2]}')
     g_cur = sum(results[2])/len(results[2])
     #print(f"conductance {sum(results[2])/len(results[2])} and {g_cur}")
@@ -79,7 +83,7 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_prg_max = 9.8,
         self.wg.WGFMU_clear()
         
         # Create waveform on WGFMU
-        self.create_waveform(b1500.test_info)
+        self.create_waveform(b1500, alternate_waveform = program_waveform)
         
         self.wgfmu_run([b1500.test_info.ch_vdd , b1500.test_info.ch_vss ])
         
@@ -92,7 +96,7 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_prg_max = 9.8,
         times = times1
         currents = vals1
         # print(f"currents {vals1}")
-        conductances = currents / b1500.test_info.VDD_rd
+        conductances = currents / .1 #CHANGE THIS WE NEED TO MAKE THE READ VOLTAGE INPUT HERE ITS HARD CODED FOR NOW
         g_cur = conductances[-1]
         current = currents[-1]
         #print(f"end of a loop: {g_cur}")
