@@ -67,15 +67,17 @@ def ProgramAndRTN(self,
     goffset = final_params["goffset"]
     read_waveform = final_params["read_waveform"]
     program_waveform = final_params["program_waveform"]
-
+    
+    self.wg.WGFMU_clear()
+    
     gtargets = np.linspace(min_gtarget, max_gtarget, num=num_level)
     print("###################################")
     print(f"The target conductances are {gtargets}")
     print("###################################")
 
     for gtarget in gtargets:
-        gmin = gtarget - 2e-6
-        gmax = gtarget + 2e-6
+        gmin = gtarget - 50e-6
+        gmax = gtarget + 50e-6
         succeed = False
 
         while not succeed and v_count < v_countmax:
@@ -84,10 +86,10 @@ def ProgramAndRTN(self,
                 t_prg=100e-9, ranging_rd=self.wgc.WGFMU_MEASURE_CURRENT_RANGE_100UA,
                 gmin=gmin, gmax=gmax, pulses_per_voltage=num, read_waveform = read_waveform, program_waveform = program_waveform)
 
-            self.wg.WGFMU_setForceDelay(b1500.test_info.ch_vdd, 100)
-            self.wg.WGFMU_setForceDelay(b1500.test_info.ch_vss, 100)
-            self.wg.WGFMU_clear()
-            self.wg.WGFMU_closeSession()
+            # self.wg.WGFMU_setForceDelay(b1500.test_info.ch_vdd, 100)
+            # self.wg.WGFMU_setForceDelay(b1500.test_info.ch_vss, 100)
+            # self.wg.WGFMU_clear()
+            # self.wg.WGFMU_closeSession()
 
             results = self.rd_pulses_1terminal(
                 b1500, ch_vdd=b1500.test_info.ch_vdd, ch_vss=b1500.test_info.ch_vss,
@@ -97,7 +99,8 @@ def ProgramAndRTN(self,
                 range_rd=self.wgc.WGFMU_MEASURE_CURRENT_RANGE_100UA,
                 offset_times=False, wgfmu_open_first=True, wgfmu_close_after=True, alternate_waveform = read_waveform)
 
-            all_except_first = results[2][1:]
+            all_except_first = results[2]
+            print(all_except_first)
             g_d = sum(all_except_first) / len(all_except_first)
 
             gmin1 = gmin - goffset
@@ -114,7 +117,6 @@ def ProgramAndRTN(self,
             print(f"PROGRAM STATUS: {succeed}, attempt {v_count}/{v_countmax}")
 
         if succeed:
-            print(f"Results from program: {results1}")
             print("SUCCESS")
 
         # Long-term RTN Read
@@ -124,7 +126,7 @@ def ProgramAndRTN(self,
             rd_period=100e-3, meas_pts=1, meas_interval=-1, meas_averaging=-1,
             t_rise=100e-9, v_rd=v_rd, v_off=0.0,
             range_rd=self.wgc.WGFMU_MEASURE_CURRENT_RANGE_100UA,
-            offset_times=False, wgfmu_open_first=True, wgfmu_close_after=True, alternatewaveform = read_waveform)
+            offset_times=False, wgfmu_open_first=True, wgfmu_close_after=True, alternate_waveform = read_waveform)
 
         times, currents, conductances = results2
         plt.figure()

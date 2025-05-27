@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def smu_meas_sweep(self, smu_nums, vstart=0.0, vstop=0.10, nsteps=51, mode=1, icomp=100e-3, 
+def smu_meas_sweep(self, b1500 = None, smu_nums = None, vstart=0.0, vstop=0.10, nsteps=51, mode=1, icomp=100e-3, 
                     num_averaging_samples=1, connect_first=True, disconnect_after=True, 
                     vmax_override=False, plot_data = False):
     """
@@ -27,7 +27,9 @@ def smu_meas_sweep(self, smu_nums, vstart=0.0, vstop=0.10, nsteps=51, mode=1, ic
     VMAX = 7  # Maximum safe voltage limit
     if ((abs(vstart) > VMAX) or (abs(vstop) > VMAX)) and not vmax_override:
         raise ValueError("Voltage exceeds 7V! Set vmax_override=True to proceed.")
-
+        
+    if isinstance(smu_nums, int):
+        smu_nums = [smu_nums]
     # Resolve SMU channels from numbers
     smu_channels = [self.smus[num - 1] for num in smu_nums]  # Convert SMU numbers to channels
     smu_channels_str = ", ".join(map(str, smu_channels))
@@ -70,19 +72,19 @@ def smu_meas_sweep(self, smu_nums, vstart=0.0, vstop=0.10, nsteps=51, mode=1, ic
             self.b1500.write(f"CL {smu_ch}")
 
     # Read and process data
-    data = self.data_clean(self.b1500.read())  # Returns a DataFrame
+    data = b1500.data_clean(b1500, self.b1500.read(), b1500.test_info.parameters, NoSave = True)  # Returns a DataFrame
 
     # Extract dynamic columns for each SMU
     extracted_data = []
     for smu_num in smu_nums:
-        time_col = f"SMU{smu_num}_Time (s)"
-        voltage_col = f"SMU{smu_num}_Voltage (V)"
-        current_col = f"SMU{smu_num}_Current (A)"
+        time_col = f"SMU{smu_num}_Time"
+        voltage_col = f"SMU{smu_num}_Voltage"
+        current_col = f"SMU{smu_num}_Current"
 
         try:
-            time_values = data[time_col].to_numpy(dtype=np.float64)
-            voltage_values = data[voltage_col].to_numpy(dtype=np.float64)
-            current_values = data[current_col].to_numpy(dtype=np.float64)
+            time_values = data[time_col].astype(float)
+            voltage_values = data[voltage_col].astype(float)
+            current_values = data[current_col].astype(float)
 
         except KeyError as e:
             missing_col = str(e).strip("'")
@@ -114,4 +116,4 @@ def smu_meas_sweep(self, smu_nums, vstart=0.0, vstop=0.10, nsteps=51, mode=1, ic
     # If multiple SMUs, return structured NumPy array
     structured_data = np.column_stack([np.hstack(data) for data in extracted_data])
     print(f"📦 Returning structured NumPy array with shape {structured_data.shape}")
-    return structured_data
+    return time_values, voltage_values, current_values

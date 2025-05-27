@@ -15,6 +15,28 @@ def Short_Check(self,
                 D_Wait=10,                      # (Dynamic only) Wait time between voltage steps
                 SaveData = False,
                 **overrides):                  # Manual per-call overrides (e.g. D_Wait=5)
+    #MAKE A KEYBOARD INTERRUPT TO SAVE AND CLEAR SMUS OR ITLL BURN AGAIN
+    #MAKE A KEYBOARD INTERRUPT TO SAVE AND CLEAR SMUS OR ITLL BURN AGAIN
+    #MAKE A KEYBOARD INTERRUPT TO SAVE AND CLEAR SMUS OR ITLL BURN AGAIN
+    #MAKE MAKE A KEYBOARD INTERRUPT TO SAVE AND CLEAR SMUS OR ITLL BURN AGAINA KEYBOARD INTERRUPT TO SAVE AND CLEAR SMUS OR ITLL BURN AGAIN
+    #MAKE A KEYBOARD INTERRUPT TO SAVE AND CLEAR SMUS OR ITLL BURN AGAIN
+    #MAKE A KEYBOARD INTERRUPT TO SAVE AND CLEAR SMUS OR ITLL BURN AGAIN
+    ###MAKE A KEYBOARD INTERRUPT TO SAVE AND CLEAR SMUS OR ITLL BURN AGAIN
+    #MAKE A KEYBOARD INTERRUPT TO SAVE AND CLEAR SMUS OR ITLL BURN AGAIN
+    
+    
+    
+    
+    #Make the Forming finish and reset the device
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     # Collect defaults into a dict
     final_params = {

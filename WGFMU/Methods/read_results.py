@@ -14,7 +14,7 @@ def read_results(self, channel_id):
     num_points = ct.c_int()  # Create C integer for storing the number of data points
     total_size = ct.c_int()
     self.wg.WGFMU_getMeasureValueSize(channel_id, ct.byref( num_points ), ct.byref( total_size ) )  # Query number of data points
-
+    # print(num_points)
     times = np.zeros( num_points.value )
     values = np.zeros( num_points.value )
         

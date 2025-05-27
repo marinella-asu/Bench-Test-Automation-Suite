@@ -206,13 +206,13 @@ class B1500:
 
         # Split raw data string into individual entries
         entries = raw_data.strip().split(",")
-        print(f"🔍 Raw Data Entries Count: {len(entries)}")
-        print(f"📜 First 10 Entries: {entries[:10]}")
+        # print(f"🔍 Raw Data Entries Count: {len(entries)}")
+        # print(f"📜 First 10 Entries: {entries[:10]}")
 
         # Identify SMU and WGFMU channels from the B1500 object
         channel_lookup = {ch: f"SMU{i+1}" for i, ch in enumerate(self.smus)}
         channel_lookup.update({ch: f"WGFMU{i+1}" for i, ch in enumerate(self.wgfmus)})
-        print(f"📡 Channel Lookup Table: {channel_lookup}")
+        # print(f"📡 Channel Lookup Table: {channel_lookup}")
 
         # Regex pattern to extract unit code and value
         pattern = re.compile(r"([A-Z][a-zA-Z]{2})([+-]\d+\.\d+E[+-]\d+)")
@@ -226,8 +226,8 @@ class B1500:
                 continue
 
             unit_code, value = match.groups()
-            print(f"🛠️ Extracted Unit Code: {unit_code}, Value: {value}")
-
+            # print(f"🛠️ Extracted Unit Code: {unit_code}, Value: {value}")
+# 
             # Extract status, channel, and unit
             status = STATUS_CODES.get(unit_code[0], "Unknown Status")
             channel_identifier = unit_code[1]
@@ -245,22 +245,22 @@ class B1500:
             column_name = f"{mapped_channel}_{unit_type.split()[0]}"
             temp_data.append([status, mapped_channel, unit_type, value, column_name])
 
-        print(f"✅ Parsed Data Count: {len(temp_data)}")
+        # print(f"✅ Parsed Data Count: {len(temp_data)}")
         if not temp_data:
             print("❌ No valid data extracted. Check raw data format.")
             return {}
 
         # Convert parsed data to DataFrame
         df = pd.DataFrame(temp_data, columns=["Status", "Module", "Unit", "Value", "Column_Name"])
-        print("📝 Initial DataFrame Preview:")
-        print(df.head(10))
+        # print("📝 Initial DataFrame Preview:")
+        # print(df.head(10))
 
         # Pivot DataFrame so each module-unit pair becomes a unique column
         df["Measurement"] = df.groupby(["Module", "Unit"]).cumcount()
         df_pivot = df.pivot(index="Measurement", columns="Column_Name", values="Value")
 
-        print("📊 Pivoted DataFrame Preview:")
-        print(df_pivot.head(10))
+        # print("📊 Pivoted DataFrame Preview:")
+        # print(df_pivot.head(10))
         
         if not NoSave:
             # Extract parameter values dynamically
@@ -315,7 +315,7 @@ class B1500:
         for column in df_pivot.columns:
             unit_array = df_pivot[column].to_numpy()
             output_data[column] = unit_array
-            print(f"📦 Extracted NumPy Array for {column}: {unit_array.shape}")
+            # print(f"📦 Extracted NumPy Array for {column}: {unit_array.shape}")
 
         return output_data
     

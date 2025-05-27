@@ -9,7 +9,7 @@ def rd_pulses_1terminal(self, b1500, ch_vdd, ch_vss,
     self.wg.WGFMU_clear()
     
     # Create waveform on WGFMU
-    self.create_waveform(b1500, alternate_waveform = alternate_waveform)
+    self.create_waveform(b1500, alternate_waveform = alternate_waveform, OverrideValue = ["Read", v_rd])
         
     
     # Run pattern
@@ -24,6 +24,10 @@ def rd_pulses_1terminal(self, b1500, ch_vdd, ch_vss,
     currents = vals1
     conductances = currents / (v_rd)
     
+    print(times)
+    print(currents)
+    print(conductances)
+        
     if offset_times:
         times += t_run
     

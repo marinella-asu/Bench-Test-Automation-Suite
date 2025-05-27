@@ -38,18 +38,21 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_prg_max = 9.8,
     pulses_per_voltage = final_params["pulses_per_voltage"]
     read_waveform = final_params["read_waveform"]
     program_waveform = final_params["program_waveform"]
-
-
+    
+    times = 0
+    currents = 0
+    conductances = 0
     v_prg_set = v_prg
-    v_prg_rst = -v_prg
+    v_prg_rst = -v_prg/2
 
     pulse_num = 0
     
     done = False #Done flag
-    
-    results = self.rd_pulses_Resalat(b1500, alternate_waveform = read_waveform)
-    #print(f'{results[2]}')
+    print(read_waveform)
+    results = self.rd_pulses_Resalat(b1500, alternate_waveform = read_waveform, v_rd = v_rd)
+    print(f'{results[2]}')
     g_cur = sum(results[2])/len(results[2])
+    print(f"conductance: {g_cur}")
     #print(f"conductance {sum(results[2])/len(results[2])} and {g_cur}")
     #g_cur = st.mean([results[1][2], results[2][2], results[3][2], results[4][2]])
     ##############################################
@@ -57,6 +60,7 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_prg_max = 9.8,
     if (g_cur >= gmin) and (g_cur <= gmax):
         done = True
     
+    vstep_increment = 0
         
     while done==False and v_prg < v_prg_max:
         # try:
@@ -68,7 +72,7 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_prg_max = 9.8,
         rst_done = ( g_cur <= gmax )
         done = np.all(set_done & rst_done)
         
-        print(f"value of conductance {g_cur:.4g}, SET {set_done}, RESET {rst_done}, and DONE {done}")
+        print(f"value of conductance {g_cur:.4g}, SET {set_done}, RESET {rst_done}, and DONE {done} Trying to reach between: ({gmin}, ({gmax})")
         if set_done==False:
             v_prg_set = v_prg_set + vstep_increment
             v_prg = v_prg_set
@@ -83,9 +87,9 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_prg_max = 9.8,
         self.wg.WGFMU_clear()
         
         # Create waveform on WGFMU
-        self.create_waveform(b1500, alternate_waveform = program_waveform)
+        self.create_waveform(b1500, alternate_waveform = program_waveform, OverrideValue = ["Program", v_prg])
         
-        self.wgfmu_run([b1500.test_info.ch_vdd , b1500.test_info.ch_vss ])
+        self.wgfmu_run([b1500.test_info.ch_vdd , b1500.test_info.ch_vss ], open_first=True, close_after=True)
         
         ###################### SHALL IT BETTER TO USE A SEPERATE READ FUNCTION INSTEAD OF COMBINED READ WITHIN THE PROGRAM ONE?
         # Read out data
