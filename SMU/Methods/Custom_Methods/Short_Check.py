@@ -15,29 +15,7 @@ def Short_Check(self,
                 D_Wait=10,                      # (Dynamic only) Wait time between voltage steps
                 SaveData = False,
                 **overrides):                  # Manual per-call overrides (e.g. D_Wait=5)
-    #MAKE A KEYBOARD INTERRUPT TO SAVE AND CLEAR SMUS OR ITLL BURN AGAIN
-    #MAKE A KEYBOARD INTERRUPT TO SAVE AND CLEAR SMUS OR ITLL BURN AGAIN
-    #MAKE A KEYBOARD INTERRUPT TO SAVE AND CLEAR SMUS OR ITLL BURN AGAIN
-    #MAKE MAKE A KEYBOARD INTERRUPT TO SAVE AND CLEAR SMUS OR ITLL BURN AGAINA KEYBOARD INTERRUPT TO SAVE AND CLEAR SMUS OR ITLL BURN AGAIN
-    #MAKE A KEYBOARD INTERRUPT TO SAVE AND CLEAR SMUS OR ITLL BURN AGAIN
-    #MAKE A KEYBOARD INTERRUPT TO SAVE AND CLEAR SMUS OR ITLL BURN AGAIN
-    ###MAKE A KEYBOARD INTERRUPT TO SAVE AND CLEAR SMUS OR ITLL BURN AGAIN
-    #MAKE A KEYBOARD INTERRUPT TO SAVE AND CLEAR SMUS OR ITLL BURN AGAIN
-    
-    
-    
-    
-    #Make the Forming finish and reset the device
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
     # Collect defaults into a dict
     final_params = {
         "SMU_Pair": SMU_Pair,
@@ -87,17 +65,62 @@ def Short_Check(self,
     #
     #
 
-    Measured_SMU = b1500.smus[SMU_Pair[0] - 1] #Channel Number
-    Grounded_SMU = b1500.smus[SMU_Pair[1] - 1] #Channel Number
+    try:
+        Measured_SMU = b1500.smus[SMU_Pair[0] - 1] #Channel Number
+        Grounded_SMU = b1500.smus[SMU_Pair[1] - 1] #Channel Number
 
-    SavedData = np.empty((0, 2))
-    
-    if Dynamic_Check:
-        while D_StartV <= Max_Voltage: 
-            start_time = time.time()
-            while (time.time() - start_time) < D_Wait:
+        SavedData = np.empty((0, 2))
+        
+        if Dynamic_Check:
+            while D_StartV <= Max_Voltage: 
+                start_time = time.time()
+                while (time.time() - start_time) < D_Wait:
+                    b1500.smu.connect_smu_list(SMU_Pair)
+
+                    # Set measurement format
+                    b1500.connection.write("FMT 1,1") 
+                    # Select high-resolution ADC
+                    b1500.connection.write(f"AAD {Measured_SMU}, 1") 
+                    # Set Current Measurement
+                    b1500.connection.write(f"CMM {Measured_SMU},1")
+
+                    b1500.connection.write(f"DV {Measured_SMU}, 0, {D_StartV}, {IComp}") #Here We setup our bias we are going to apply which will update after we reach D_Wait
+                    b1500.connection.write(f"DV {Grounded_SMU}, 0, 0, {IComp}")
+
+                    b1500.connection.write(f"MM 1, {Measured_SMU}")
+
+                    b1500.connection.write("XE") #Start measurement
+
+                    data = b1500.connection.read()
+                    data = b1500.data_clean(b1500, data, b1500.test_info.parameters, NoSave = True)
+                    Current = data.get(f"SMU{SMU_Pair[0]}_Current", None)
+                    Current = abs(Current.astype(float)).item()
+                        
+                    Resistance = abs(D_StartV / Current)
+                    print(f"Resistance: {Resistance}")
+                    print(f"Voltage: {D_StartV}")
+                    print(f"Current: {Current}")
+                    if SaveData is True:
+                        new_data = [Current, D_StartV]
+
+                        # Append along axis 0 (rows)
+                        SavedData = np.append(SavedData, [new_data], axis=0)
+                    if Resistance < Max_Resistance:
+                        if SaveData is True:
+                            b1500.save_numpy_to_csv(b1500.test_info, SavedData, filename = "FormingDataIV")
+                        b1500.connection.write("CL")
+                        return True
+
+
+                if D_StartV >= Max_Voltage-.0001:
+                    b1500.save_numpy_to_csv(b1500.test_info, SavedData, filename = "FormingDataIVFailed")
+                    b1500.connection.write("CL")
+                    return False
+                D_StartV += D_Step
+            
+        else:
+            for i in range(11):
                 b1500.smu.connect_smu_list(SMU_Pair)
-
                 # Set measurement format
                 b1500.connection.write("FMT 1,1") 
                 # Select high-resolution ADC
@@ -105,8 +128,8 @@ def Short_Check(self,
                 # Set Current Measurement
                 b1500.connection.write(f"CMM {Measured_SMU},1")
 
-                b1500.connection.write(f"DV {Measured_SMU}, 0, {D_StartV}, {IComp}") #Here We setup our bias we are going to apply which will update after we reach D_Wait
-                b1500.connection.write(f"DV {Grounded_SMU}, 0, 0, {IComp}")
+                b1500.connection.write(f"DV {Measured_SMU}, 0, {Max_Voltage}, 100e-3") #Here We setup our bias we are going to apply which will update after we reach D_Wait
+                b1500.connection.write(f"DV {Grounded_SMU}, 0, 0, 100e-3")
 
                 b1500.connection.write(f"MM 1, {Measured_SMU}")
 
@@ -115,56 +138,16 @@ def Short_Check(self,
                 data = b1500.connection.read()
                 data = b1500.data_clean(b1500, data, b1500.test_info.parameters, NoSave = True)
                 Current = data.get(f"SMU{SMU_Pair[0]}_Current", None)
-                Current = abs(Current.astype(float)).item()
-                    
-                Resistance = abs(D_StartV / Current)
-                print(f"Resistance: {Resistance}")
-                print(f"Voltage: {D_StartV}")
-                print(f"Current: {Current}")
-                if SaveData is True:
-                    new_data = [Current, D_StartV]
+                Current = Current.astype(float)
+                Resistance = Max_Voltage / Current
 
-                    # Append along axis 0 (rows)
-                    SavedData = np.append(SavedData, [new_data], axis=0)
                 if Resistance < Max_Resistance:
-                    if SaveData is True:
-                        b1500.save_numpy_to_csv(b1500.test_info, SavedData, filename = "FormingDataIV")
                     b1500.connection.write("CL")
                     return True
-
-
-            if D_StartV >= Max_Voltage-.0001:
-                b1500.save_numpy_to_csv(b1500.test_info, SavedData, filename = "FormingDataIVFailed")
-                b1500.connection.write("CL")
-                return False
-            D_StartV += D_Step
-        
-    else:
-        for i in range(11):
-            b1500.smu.connect_smu_list(SMU_Pair)
-            # Set measurement format
-            b1500.connection.write("FMT 1,1") 
-            # Select high-resolution ADC
-            b1500.connection.write(f"AAD {Measured_SMU}, 1") 
-            # Set Current Measurement
-            b1500.connection.write(f"CMM {Measured_SMU},1")
-
-            b1500.connection.write(f"DV {Measured_SMU}, 0, {Max_Voltage}, 100e-3") #Here We setup our bias we are going to apply which will update after we reach D_Wait
-            b1500.connection.write(f"DV {Grounded_SMU}, 0, 0, 100e-3")
-
-            b1500.connection.write(f"MM 1, {Measured_SMU}")
-
-            b1500.connection.write("XE") #Start measurement
-
-            data = b1500.connection.read()
-            data = b1500.data_clean(b1500, data, b1500.test_info.parameters, NoSave = True)
-            Current = data.get(f"SMU{SMU_Pair[0]}_Current", None)
-            Current = Current.astype(float)
-            Resistance = Max_Voltage / Current
-
-            if Resistance < Max_Resistance:
-                b1500.connection.write("CL")
-                return True
-        
+            
+            b1500.connection.write("CL")
+            return False
+    except KeyboardInterrupt as e:
+        if SavedData is not None:
+            b1500.save_numpy_to_csv(b1500.test_info, SavedData, filename = "FormingDataIVStopped")
         b1500.connection.write("CL")
-        return False

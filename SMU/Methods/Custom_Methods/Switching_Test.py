@@ -51,7 +51,6 @@ def Switch_Test(self,
     VStep           = final_params["VStep"]
 
     #
-    #Make the code first reset the device then do the set/reset cycles
     # Sweep Setup
     #
     positive_sweep = np.concatenate([
@@ -68,17 +67,7 @@ def Switch_Test(self,
     # Preallocate data: voltages in first column
     IVData = np.zeros((num_points, num_loops + 1))  # Don't assign voltages here anymore
     Memory_Windows = []
-
-    #
-    # Initial Read Measurement
-    #
-    # self.bias_smu(SMU_Pair[1], 0, ICompSet)
-    # self.smu_meas_sample(SMU_Pair[0], vmeas=Read_Voltage, icomp=ICompSet,
-    #                      interval=10e-3, pre_bias_time=100e-3, number=1,
-    #                      disconnect_after=True)
-    # data = b1500.connection.read()
-    # data = b1500.data_clean(b1500, data, b1500.test_info.parameters, NoSave=True)
-    # Initial_Read = abs(data.get(f"SMU{SMU_Pair[0]}_Current", None).astype(float)).item()
+    
 
     #
     # Looping

@@ -40,7 +40,9 @@ parameters = {
         "D_StartV": 1,
         "D_Step": .5, #Step of .5V each time we elapse D_Wait
         "D_Wait": 2,
-        "SaveData": True
+        "SaveData": True,
+        "Reset_Voltage": -1,
+        "Reset_Compliance": 100e-3
     },
 
     "Switch_Test": {
@@ -81,7 +83,7 @@ b1500 = B1500(unit_label = 'A', parameters=parameters)
 # didItShort = b1500.smu.Short_Check(b1500, "Short_Check_Test")
 # print(f"We were able to short the two pads?: {didItShort}")
 
-# didItForm = b1500.smu.Short_Check(b1500, "Form_Test")
+# didItForm = b1500.smu.Forming(b1500, "Form_Test")
 # print(f"We Formed the Device?: {didItForm}")
 
 didweSwitch = b1500.smu.Switch_Test(b1500, "Switch_Test")
