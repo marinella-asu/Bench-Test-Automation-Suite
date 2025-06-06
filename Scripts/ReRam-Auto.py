@@ -11,60 +11,71 @@ parameters = {
     "Device Number": 67,
 
     "Waveform Format": "Reram",  # Loads "Reram.txt"
-    "Waveform": "Evan_Reram_4",
-    "Waveform Editor": "ask",  
+    "Waveform": "RTN_Waveform",
+    # "Waveform Editor": "ask",  
     "VDD WGFMU": 1,
     "VSS WGFMU": 2,
-    "Interval": 1.5e-3,
-    "data points": 300,
+    "trd": 1e-4,
+    "pts_per_meas" : 1,
     
     "Short_Check_Test": { #Must have "_" instead of " "
-        "SMU_Pair": [1, 2], #Measure 1 Ground 2
-        "Max_Resistance": 10000, #200 Ohms or less is a short
-        "Max_Voltage": 3, #Max Voltage We can use
+        "SMU_Pair": [2, 3], #Measure 1 Ground 2
+        "Max_Resistance": 200, #200 Ohms or less is a short
+        "Max_Voltage": .1, #Max Voltage We can use
+        "IComp": 100e-3,
         "Dynamic_Check": True, #Do an aautomatic Ramp
         "D_StartV": .1,
-        "D_Step": .1, #Step of .5V each time we elapse D_Wait
+        "D_Step": 1, #Step of .5V each time we elapse D_Wait
         "D_Wait": 10,
         "SaveData": True
     },
     
     #Check For a Short between two SMUS this is a contact measurement
     "Form_Test": { #Must have "_" instead of " "
-        "SMU_Pair": [4, 3], #Measure 1 Ground 2
-        "Max_Resistance": 900, #200 Ohms or less is a short
-        "Max_Voltage": 5, #Max Voltage We can use
+        "SMU_Pair": [1, 2], #Measure 1 Ground 2
+        "Max_Resistance": 10000, #200 Ohms or less is a short
+        "Max_Voltage": 7, #Max Voltage We can use
+        "IComp": 1e-3,
         "Dynamic_Check": True, #Do an aautomatic Ramp
-        "D_StartV": 1,
+        "D_StartV": 3,
         "D_Step": .1, #Step of .5V each time we elapse D_Wait
-        "D_Wait": 10,
-        "SaveData": True
+        "D_Wait": 2,
+        "SaveData": True,
+        "Reset_Voltage": -1,
+        "Reset_Compliance": 100e-3
     },
 
     "Switch_Test": {
         "SMU_Pair": [1,2],
-        "num_loops": 10,
-        "Read_Voltage": 1,
-        "Max_Pos_Voltage": 3,
-        "Max_Neg_Voltage": -2.5,
-        "VStep": .1,
-        "IComp": 100e-3, #Add in different positive versus negative compliance
-        "SaveData": True
+        "num_loops": 2,
+        "Read_Voltage": .1,
+        "Pos_Voltage": 2,
+        "Neg_Voltage": -1,
+        "VStep": .05,
+        "ICompSet": 1e-3, #Add in different positive versus negative compliance
+        "ICompReset": 100e-3,
+        "ICompRead": 100e-3,
+        "SaveData": True,
+        "Reset_Voltage_Step": .1
     },
 
     "Program": {
-        "min_gtarget": 300e-6,   # ‑‑ G_Minimum_Target
-        "max_gtarget": 1000e-6,  # ‑‑ G_Maximum_Target
-        "num_level":   7,        # ‑‑ Num_Levels
-        "num":         30,       # ‑‑ Prog_Num
-        "num_reads":   10,       # ‑‑ Prog_Num_Reads
-        "v_rd":        0.1,      # ‑‑ V_Read
-        "v_prg":       1,      # ‑‑ V_Prog_Start
-        "vstop":       0.0,      # ‑‑ V_Stop
-        "v_prg_max":   9.8,      # ‑‑ V_Prog_Max
+        "min_gtarget": .00095,   # ‑‑ Lowest Conductance Target
+        "max_gtarget": .001,  # ‑‑ Highest Conductance Target
+        "num_level":   2,        # ‑‑ How many levels in between those levels do we want to program to
+        "num":         20,       # ‑‑ How many times we hold a programming voltage before increasing intensity
+        "num_reads":   10,       # ‑‑ How many times we read the device during validation to verify we did program the correct state
+        "v_rd":        0.1,      # ‑‑ Read Voltage during validation and RTN
+        "v_prg":       1,      # ‑‑ Initial Set Voltage for programming
+        "v_rst":       -1,      # -- Initial Reset Voltage for programming
+        "v_prg_max":   2.3,      # ‑‑ Maximum value used for Set operation
         "v_count":     0,        # (initial counter)
-        "v_countmax":  40,       # ‑‑ V_Count_Max
-        "goffset":     1e-6
+        "v_countmax":  1000,       # ‑‑ Maximum times we'll try to program and validate before giving up on the state 
+        "goffset":     1e-6, #Validation Range +- offset 
+        "ProgramTargetOffset": 10e-6, #+- offset around our programmed states (How close do we need to be to our set state to be correct)
+        "read_waveform": "Evan_Reram_3", #Waveform used during read operation
+        "program_waveform": "Evan_Reram_4", #Waveform used during Program operation
+        "RTN_waveform":     "RTN_Waveform", #Waveform used during RTN read operation
     }
 
 
@@ -75,9 +86,9 @@ parameters = {
 b1500 = B1500(unit_label = 'A', parameters=parameters)
 
 # didItShort = b1500.smu.Short_Check(b1500, "Short_Check_Test")
-# print(f"We were able to short the back gate?: {didItShort}")
+# print(f"We were able to short the two pads?: {didItShort}")
 
-# didItForm = b1500.smu.Short_Check(b1500, "Form_Test")
+# didItForm = b1500.smu.Forming(b1500, "Form_Test")
 # print(f"We Formed the Device?: {didItForm}")
 
 # didweSwitch = b1500.smu.Switch_Test(b1500, "Switch_Test")
@@ -85,6 +96,10 @@ b1500 = B1500(unit_label = 'A', parameters=parameters)
 
 didweProgram = b1500.wgfmu.ProgramAndRTN(b1500, "Program")
 print(f"Did we successfully Program?: {didweProgram}")
+
+b1500.connection.write("CL")
+b1500.wgfmu.wg.WGFMU_clear()
+
 
 
 

@@ -1,3 +1,5 @@
 import ctypes as ct
-def cstr( a_string, encoding='utf-8' ):
-    return ct.create_string_buffer( bytes( a_string , encoding) )
+
+def cstr(self, a_string, encoding='utf-8'):
+    a_string = (str(a_string)).encode(encoding)
+    return ct.create_string_buffer(a_string)

@@ -1,0 +1,8 @@
+Start,0,0.0,0.0,,
+Placeholder_Comp,10e-6,0.0,0.0,100ua,
+Placeholder,58.9e-6,0.0,0.0,,
+Placeholder,59e-6,0.1,0.0,,
+Placeholder,68.9e-6,0.1,0.0,,
+Placeholder_Meas,119e-6,0.1,0.0,,
+Placeholder,3,0.1,0,,
+Placeholder,3.1,0.0,0.0,

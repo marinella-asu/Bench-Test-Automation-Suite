@@ -14,6 +14,7 @@ import pandas as pd
 from datetime import datetime
 import re
 import wgfmu_consts as wgc
+from typing import Any, Dict
 
 # Unit type mapping from the B1500 documentation
 UNIT_MAP = {
@@ -39,7 +40,7 @@ CHANNEL_MAP = {
 
 # Define configurations for each B1500 unit
 B1500_CONFIG = {
-    "A": {"gpib_address": 17, "smu_channels": [301, 401, 501, 601], "wgfmu_channels": [101, 102]},
+    "A": {"gpib_address": 17, "smu_channels": [301, 401, 501, 601], "wgfmu_channels": [201, 202]},
     "B": {"gpib_address": 18, "smu_channels": [302, 402, 502, 602], "wgfmu_channels": [103, 104]}, #Change
     "C": {"gpib_address": 19, "smu_channels": [303, 403, 503, 603], "wgfmu_channels": [105, 106]}, #Change 
     "D": {"gpib_address": 20, "smu_channels": [304, 404, 504, 604], "wgfmu_channels": [107, 108]}, #Change
@@ -81,16 +82,15 @@ class B1500:
             print(f"⚡ WGFMU Channels: {self.wgfmus}")
 
         
-        # self.resource_manager = pyvisa.ResourceManager()
-        # self.connection = self._connect_to_instrument()
-        # self.connection.timeout = 200000
-        self.connection = "Connection" # THIS IS JUST FOR A TEST PLEASE CHANGE THIS FOR THE RELEASE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        self.resource_manager = pyvisa.ResourceManager()
+        self.connection = self._connect_to_instrument()
+        self.connection.timeout = 200000
+        # self.connection = "Connection" # THIS IS JUST FOR A TEST PLEASE CHANGE THIS FOR THE RELEASE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         # Initialize SMU and WGFMU objects
         
         self.smu = SMU(self.connection, self.smus)
-        self.wgfmu = WGFMU(self.connection, self.wgfmus)
-        
+        self.wgfmu = WGFMU(self.connection, self.wgfmus, self.gpib_address)
 
         # Initialize TestInfo and validate parameters
         self.test_info = TestInfo(parameters or {})
@@ -141,6 +141,15 @@ class B1500:
         connection.write("*rst; status:preset; *cls")
         print(f"Connected to B1500 at {self.gpib_address}")
         return connection
+
+    def _get_final_params(defaults: Dict[str, Any],
+                        block: Dict[str, Any],
+                        overrides: Dict[str, Any]) -> Dict[str, Any]:
+        """Return one dict where caller overrides > block > library defaults."""
+        params = defaults.copy()
+        params.update(block)       # second priority
+        params.update(overrides)   # highest priority
+        return params
 
     def save_data(self, data, file_path, column_labels=None):
         """
@@ -197,13 +206,13 @@ class B1500:
 
         # Split raw data string into individual entries
         entries = raw_data.strip().split(",")
-        print(f"🔍 Raw Data Entries Count: {len(entries)}")
-        print(f"📜 First 10 Entries: {entries[:10]}")
+        # print(f"🔍 Raw Data Entries Count: {len(entries)}")
+        # print(f"📜 First 10 Entries: {entries[:10]}")
 
         # Identify SMU and WGFMU channels from the B1500 object
         channel_lookup = {ch: f"SMU{i+1}" for i, ch in enumerate(self.smus)}
         channel_lookup.update({ch: f"WGFMU{i+1}" for i, ch in enumerate(self.wgfmus)})
-        print(f"📡 Channel Lookup Table: {channel_lookup}")
+        # print(f"📡 Channel Lookup Table: {channel_lookup}")
 
         # Regex pattern to extract unit code and value
         pattern = re.compile(r"([A-Z][a-zA-Z]{2})([+-]\d+\.\d+E[+-]\d+)")
@@ -217,8 +226,8 @@ class B1500:
                 continue
 
             unit_code, value = match.groups()
-            print(f"🛠️ Extracted Unit Code: {unit_code}, Value: {value}")
-
+            # print(f"🛠️ Extracted Unit Code: {unit_code}, Value: {value}")
+# 
             # Extract status, channel, and unit
             status = STATUS_CODES.get(unit_code[0], "Unknown Status")
             channel_identifier = unit_code[1]
@@ -236,22 +245,22 @@ class B1500:
             column_name = f"{mapped_channel}_{unit_type.split()[0]}"
             temp_data.append([status, mapped_channel, unit_type, value, column_name])
 
-        print(f"✅ Parsed Data Count: {len(temp_data)}")
+        # print(f"✅ Parsed Data Count: {len(temp_data)}")
         if not temp_data:
             print("❌ No valid data extracted. Check raw data format.")
             return {}
 
         # Convert parsed data to DataFrame
         df = pd.DataFrame(temp_data, columns=["Status", "Module", "Unit", "Value", "Column_Name"])
-        print("📝 Initial DataFrame Preview:")
-        print(df.head(10))
+        # print("📝 Initial DataFrame Preview:")
+        # print(df.head(10))
 
         # Pivot DataFrame so each module-unit pair becomes a unique column
         df["Measurement"] = df.groupby(["Module", "Unit"]).cumcount()
         df_pivot = df.pivot(index="Measurement", columns="Column_Name", values="Value")
 
-        print("📊 Pivoted DataFrame Preview:")
-        print(df_pivot.head(10))
+        # print("📊 Pivoted DataFrame Preview:")
+        # print(df_pivot.head(10))
         
         if not NoSave:
             # Extract parameter values dynamically
@@ -306,7 +315,7 @@ class B1500:
         for column in df_pivot.columns:
             unit_array = df_pivot[column].to_numpy()
             output_data[column] = unit_array
-            print(f"📦 Extracted NumPy Array for {column}: {unit_array.shape}")
+            # print(f"📦 Extracted NumPy Array for {column}: {unit_array.shape}")
 
         return output_data
     
@@ -330,7 +339,7 @@ class B1500:
 
         # Locate "Bench_Test_Automation_Suite" folder dynamically
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        while not script_dir.endswith("Bench-Test-Automation-Suite"):
+        while not script_dir.endswith("Bench-Test-Automation-Suite-main"):
             script_dir = os.path.dirname(script_dir)  # Move up one level
 
         # Ensure the data is stored inside "Bench_Test_Automation_Suite/Data"
