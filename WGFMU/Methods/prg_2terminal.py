@@ -50,11 +50,11 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_rst = -1, v_pr
     pulse_num = 0
     
     done = False #Done flag
-    print(read_waveform)
+    # print(read_waveform)
     results = self.rd_pulses_Resalat(b1500, alternate_waveform = read_waveform, v_rd = v_rd)
-    print(f'{results[2]}')
+    # print(f'{results[2]}')
     g_cur = sum(results[2])/len(results[2])
-    print(f"conductance: {g_cur}")
+    # print(f"conductance: {g_cur}")
     #print(f"conductance {sum(results[2])/len(results[2])} and {g_cur}")
     #g_cur = st.mean([results[1][2], results[2][2], results[3][2], results[4][2]])
     ##############################################
@@ -74,7 +74,7 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_rst = -1, v_pr
         rst_done = ( g_cur <= gmax )
         done = np.all(set_done & rst_done)
         
-        print(f"value of conductance {g_cur:.4g}, SET {set_done}, RESET {rst_done}, and DONE {done} Trying to reach between: ({gmin}, ({gmax})")
+        print(f"value of conductance {g_cur:.4g}, SET {set_done}, RESET {rst_done}, and DONE {done} Trying to reach between: ({gmin}, ({gmax})\nProgramming Voltage of: {v_prg}V\n")
         if set_done==False:
             v_prg_set = v_prg_set + vstep_increment
             v_prg = v_prg_set

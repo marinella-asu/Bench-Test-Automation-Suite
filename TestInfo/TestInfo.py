@@ -7,6 +7,7 @@ import numpy as np
 import wgfmu_consts as wgc
 import os
 import math
+import csv
 
 
 class TestInfo:
@@ -20,6 +21,7 @@ class TestInfo:
         self.waveform_data = {}
 
     def save_and_close(self):
+        global waveform_data_path  # Use the global path for saving
         """Saves waveform data and closes the GUI."""
         VDD_time, VDD_voltage = [], []
         VSS_time, VSS_voltage = [], []
@@ -28,7 +30,9 @@ class TestInfo:
         meas_times, meas_pts, meas_interval, meas_averaging, meas_mode = [], [], [], [], []
         trd = float(measure_duration_entry.get().strip()) if measure_duration_entry.get().strip() else 100e-6
         num_pts_per_measure = int(num_points_entry.get().strip()) if num_points_entry.get().strip() else 1
-
+        
+        rows_to_save = []
+    
         for time_entry, vdd_entry, vss_entry, label_entry, comp_entry in zip(
             time_entries, vdd_entries, vss_entries, label_entries, compliance_entries
         ):
@@ -37,7 +41,9 @@ class TestInfo:
             vss_val = vss_entry.get().strip()
             label_val = label_entry.get().strip().lower()
             comp_val = comp_entry.get().strip().lower()
-
+            
+            rows_to_save.append([label_val, time_val, vdd_val, vss_val, comp_val, ""])
+            
             if time_val.replace(".", "", 1).isdigit():
                 time_val = float(time_val)
 
@@ -77,6 +83,14 @@ class TestInfo:
         }
 
         self.waveform_data = waveform_data
+        
+        # Write CSV with 6 columns to waveform_data_path
+        try:
+            with open(waveform_data_path, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerows(rows_to_save)
+        except Exception as e:
+            print(f"Error saving waveform CSV: {e}")
         root.quit()
         root.destroy()
 
@@ -205,9 +219,9 @@ class TestInfo:
             # 4) draw (use a step style so the change appears instantaneous)
             self.ax.clear()
             self.ax.plot(T_values, VDD_plot, marker="o", linestyle="-",
-                        drawstyle="steps-post",  label="VDD Voltage")
+                          label="VDD Voltage")
             self.ax.plot(T_values, VSS_plot, marker="s", linestyle="--",
-                        drawstyle="steps-post", label="VSS Voltage")
+                         label="VSS Voltage")
 
             self.ax.set_xlabel("Time")
             self.ax.set_ylabel("Voltage")
@@ -221,6 +235,7 @@ class TestInfo:
 
 
     def validate_and_prompt(self, timeout=300):
+        global waveform_data_path
         """
         Validates parameters and prompts the user to fill missing ones via a GUI.
         If the GUI stays open for more than the timeout, the program exits.
@@ -247,7 +262,7 @@ class TestInfo:
             # Ensure the data is stored inside "Bench_Test_Automation_Suite/Data"
             waveform_data_path = os.path.join(script_dir, "Waveforms", f"{waveform_data_name}.txt")
             
-            print(waveform_data_path)
+            # print(waveform_data_path)
             if os.path.exists(waveform_data_path):
                 with open(waveform_data_path, "r") as f:
                     VDD_data = [line.strip() for line in f.readlines()]
@@ -275,12 +290,12 @@ class TestInfo:
 
 
 
-            # Example output
-            print("Labels:", labels)
-            print("Times:", times)
-            print("VDD:", vdd_values)
-            print("VSS:", vss_values)
-            print("Compliance:", comps)
+            # # Example output
+            # print("Labels:", labels)
+            # print("Times:", times)
+            # print("VDD:", vdd_values)
+            # print("VSS:", vss_values)
+            # print("Compliance:", comps)
 
 
             # if format_name:
@@ -298,7 +313,7 @@ class TestInfo:
             #         print(f"⚠️ Format file not found: {format_path}")
             
             print("📈 Launching waveform editor...")
-            self.launch_waveform_editor(labels, times, vdd_values, vss_values, comps)
+            self.launch_waveform_editor( labels, times, vdd_values, vss_values, comps)
 
 
         if not missing_params:

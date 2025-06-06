@@ -11,8 +11,8 @@ parameters = {
     "Device Number": 67,
 
     "Waveform Format": "Reram",  # Loads "Reram.txt"
-    "Waveform": "RTN_Waveform",
-    # "Waveform Editor": "ask",  
+    "Waveform": "ReRam_Program_Evan", #Set this to Load a Waveform into the Editor
+    "Waveform Editor": "ask",   #Uncomment this to load the waveform editor
     "VDD WGFMU": 1,
     "VSS WGFMU": 2,
     "trd": 1e-4,
@@ -73,9 +73,9 @@ parameters = {
         "v_countmax":  1000,       # ‑‑ Maximum times we'll try to program and validate before giving up on the state 
         "goffset":     1e-6, #Validation Range +- offset 
         "ProgramTargetOffset": 10e-6, #+- offset around our programmed states (How close do we need to be to our set state to be correct)
-        "read_waveform": "Evan_Reram_3", #Waveform used during read operation
-        "program_waveform": "Evan_Reram_4", #Waveform used during Program operation
-        "RTN_waveform":     "RTN_Waveform", #Waveform used during RTN read operation
+        "read_waveform": "ReRam_Read_Evan", #Waveform used during read operation
+        "program_waveform": "ReRam_Program_Evan", #Waveform used during Program operation
+        "RTN_waveform":     "ReRam_RTN_Evan", #Waveform used during RTN read operation
     }
 
 

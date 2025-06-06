@@ -87,9 +87,7 @@ def create_waveform(self, b1500, patt_name="", alternate_waveform = None, Overri
                 vss_val = vss_entry
                 label_val = str((label_entry)).lower()  # Convert label to lowercase for searching
                 comp_val = str(comp_entry).lower()
-                
-                if "program" in label_val:
-                    print(f"VDD Val: {vdd_val}")
+            
                 # If VDD is NOT "X", store time and voltage for VDD
                 if vdd_val != "X":
                     VDD_time.append(time_val)

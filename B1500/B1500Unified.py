@@ -199,7 +199,7 @@ class B1500:
         Returns:
             dict: A dictionary containing structured NumPy arrays for each unit type.
         """
-        print("🔄 Starting data_clean method...")
+        # print("🔄 Starting data_clean method...")
 
         
 
