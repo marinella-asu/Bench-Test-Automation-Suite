@@ -85,12 +85,13 @@ class B1500:
         self.resource_manager = pyvisa.ResourceManager()
         self.connection = self._connect_to_instrument()
         self.connection.timeout = 200000
+        
         # self.connection = "Connection" # THIS IS JUST FOR A TEST PLEASE CHANGE THIS FOR THE RELEASE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         # Initialize SMU and WGFMU objects
         
         self.smu = SMU(self.connection, self.smus)
-        self.wgfmu = WGFMU(self.connection, self.wgfmus, self.gpib_address)
+        # self.wgfmu = WGFMU(self.connection, self.wgfmus, self.gpib_address)
 
         # Initialize TestInfo and validate parameters
         self.test_info = TestInfo(parameters or {})
@@ -138,8 +139,11 @@ class B1500:
         """
         gpib_str = f"GPIB0::{self.gpib_address}::INSTR"
         connection = self.resource_manager.open_resource(gpib_str)
-        connection.write("*rst; status:preset; *cls")
-        print(f"Connected to B1500 at {self.gpib_address}")
+        connection.read_termination = "\r\n"  # Sets the character that indicates the end of a read
+        connection.write_termination = "\r\n"  # Optional: sets the character appended to a write
+
+        ID = connection.query("*IDN?")
+        print(f"Connected to {ID} at {self.gpib_address}")
         return connection
 
     def _get_final_params(defaults: Dict[str, Any],
@@ -199,7 +203,7 @@ class B1500:
         Returns:
             dict: A dictionary containing structured NumPy arrays for each unit type.
         """
-        print("🔄 Starting data_clean method...")
+        # print("🔄 Starting data_clean method...")
 
         
 

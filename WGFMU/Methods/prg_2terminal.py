@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 
-def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_prg_max = 9.8, v_rd = .1, vstep = 0.1, gmin = 300e-6, gmax = 1000e-6, pulses_per_voltage = 30, read_waveform = "Evan_Reram_4", program_waveform = "Evan_Reram_4", **overrides):
+def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_rst = -1, v_prg_max = 9.8, v_rd = .1, vstep = 0.1, gmin = 300e-6, gmax = 1000e-6, pulses_per_voltage = 30, read_waveform = "Evan_Reram_4", program_waveform = "Evan_Reram_4", **overrides):
 
     now = datetime.datetime.now()
     date_time = now.strftime("%Y-%m-%d_%H-%M-%S")
@@ -10,6 +10,7 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_prg_max = 9.8,
     final_params = {
         "v_prg": v_prg,
         "v_prg_max": v_prg_max,
+        "v_rst": v_rst,
         "v_rd": v_rd,
         "vstep": vstep,
         "gmin": gmin,
@@ -30,6 +31,7 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_prg_max = 9.8,
         final_params.update(overrides)
 
     v_prg = final_params["v_prg"]
+    v_rst = final_params["v_rst"]
     v_prg_max = final_params["v_prg_max"]
     v_rd = final_params["v_rd"]
     vstep = final_params["vstep"]
@@ -43,16 +45,16 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_prg_max = 9.8,
     currents = 0
     conductances = 0
     v_prg_set = v_prg
-    v_prg_rst = -v_prg/2
+    v_prg_rst = v_rst
 
     pulse_num = 0
     
     done = False #Done flag
-    print(read_waveform)
+    # print(read_waveform)
     results = self.rd_pulses_Resalat(b1500, alternate_waveform = read_waveform, v_rd = v_rd)
-    print(f'{results[2]}')
+    # print(f'{results[2]}')
     g_cur = sum(results[2])/len(results[2])
-    print(f"conductance: {g_cur}")
+    # print(f"conductance: {g_cur}")
     #print(f"conductance {sum(results[2])/len(results[2])} and {g_cur}")
     #g_cur = st.mean([results[1][2], results[2][2], results[3][2], results[4][2]])
     ##############################################
@@ -72,7 +74,7 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_prg_max = 9.8,
         rst_done = ( g_cur <= gmax )
         done = np.all(set_done & rst_done)
         
-        print(f"value of conductance {g_cur:.4g}, SET {set_done}, RESET {rst_done}, and DONE {done} Trying to reach between: ({gmin}, ({gmax})")
+        print(f"value of conductance {g_cur:.4g}, SET {set_done}, RESET {rst_done}, and DONE {done} Trying to reach between: ({gmin}, ({gmax})\nProgramming Voltage of: {v_prg}V\n")
         if set_done==False:
             v_prg_set = v_prg_set + vstep_increment
             v_prg = v_prg_set

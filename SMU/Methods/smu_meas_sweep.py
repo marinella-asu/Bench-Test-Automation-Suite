@@ -24,9 +24,9 @@ def smu_meas_sweep(self, b1500 = None, smu_nums = None, vstart=0.0, vstop=0.10, 
     - (times, voltage, current) if a single SMU
     """
 
-    VMAX = 7  # Maximum safe voltage limit
-    if ((abs(vstart) > VMAX) or (abs(vstop) > VMAX)) and not vmax_override:
-        raise ValueError("Voltage exceeds 7V! Set vmax_override=True to proceed.")
+    # VMAX = 7  # Maximum safe voltage limit
+    # if ((abs(vstart) > VMAX) or (abs(vstop) > VMAX)) and not vmax_override:
+    #     raise ValueError("Voltage exceeds 7V! Set vmax_override=True to proceed.")
         
     if isinstance(smu_nums, int):
         smu_nums = [smu_nums]

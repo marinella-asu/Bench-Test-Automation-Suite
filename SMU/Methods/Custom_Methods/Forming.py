@@ -116,7 +116,16 @@ def Forming(self,
                     if Resistance < Max_Resistance:
                         if SaveData is True:
                             b1500.save_numpy_to_csv(b1500.test_info, SavedData, filename = "FormingDataIV")
-                        
+                            
+                            plt.plot(SavedData[:, 1], SavedData[:, 0], label='Forming IV', marker='o', linestyle='-')
+                            plt.xlabel('Voltage (V)')
+                            plt.ylabel('Current (A)')
+                            plt.title(f'I-V Curves for Reset Loop')
+                            plt.grid(True)
+                            plt.legend()
+                            plt.tight_layout()
+                            plt.show()
+                            
                         print("The device formed now resetting the device")
                         #Make the Forming finish and reset the device 
                         results_neg = self.IVSweep(b1500=b1500, 
@@ -134,10 +143,10 @@ def Forming(self,
 
                         voltages_neg = results_neg[1]
                         currents_neg = results_neg[2]
-                        plt.plot(voltages_neg, currents_neg, label=f'Loop {i}', marker='o', linestyle='-')
+                        plt.plot(voltages_neg, currents_neg, label=f'Reset IV Loop', marker='o', linestyle='-')
                         plt.xlabel('Voltage (V)')
                         plt.ylabel('Current (A)')
-                        plt.title(f'I-V Curves for {num_loops} Loop(s)')
+                        plt.title(f'I-V Curves for Reset Loop')
                         plt.grid(True)
                         plt.legend()
                         plt.tight_layout()
