@@ -7,6 +7,7 @@ import numpy as np
 import wgfmu_consts as wgc
 import os
 import math
+import csv
 
 
 class TestInfo:
@@ -20,6 +21,7 @@ class TestInfo:
         self.waveform_data = {}
 
     def save_and_close(self):
+        global waveform_data_path  # Use the global path for saving
         """Saves waveform data and closes the GUI."""
         VDD_time, VDD_voltage = [], []
         VSS_time, VSS_voltage = [], []
@@ -28,7 +30,9 @@ class TestInfo:
         meas_times, meas_pts, meas_interval, meas_averaging, meas_mode = [], [], [], [], []
         trd = float(measure_duration_entry.get().strip()) if measure_duration_entry.get().strip() else 100e-6
         num_pts_per_measure = int(num_points_entry.get().strip()) if num_points_entry.get().strip() else 1
-
+        
+        rows_to_save = []
+    
         for time_entry, vdd_entry, vss_entry, label_entry, comp_entry in zip(
             time_entries, vdd_entries, vss_entries, label_entries, compliance_entries
         ):
@@ -37,7 +41,9 @@ class TestInfo:
             vss_val = vss_entry.get().strip()
             label_val = label_entry.get().strip().lower()
             comp_val = comp_entry.get().strip().lower()
-
+            
+            rows_to_save.append([label_val, time_val, vdd_val, vss_val, comp_val, ""])
+            
             if time_val.replace(".", "", 1).isdigit():
                 time_val = float(time_val)
 
@@ -77,10 +83,18 @@ class TestInfo:
         }
 
         self.waveform_data = waveform_data
+        
+        # Write CSV with 6 columns to waveform_data_path
+        try:
+            with open(waveform_data_path, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerows(rows_to_save)
+        except Exception as e:
+            print(f"Error saving waveform CSV: {e}")
         root.quit()
         root.destroy()
 
-    def launch_waveform_editor(self, labels=None):
+    def launch_waveform_editor(self, labels=None, times = None, VDD_Values = None, VSS_Values = None, Comp = None):
         global root, label_entries, time_entries, vdd_entries, vss_entries, compliance_entries
         global measure_duration_entry, num_points_entry
 
@@ -106,18 +120,22 @@ class TestInfo:
 
             time_entry = tk.Entry(frame, width=10)
             time_entry.grid(row=i + 1, column=1)
+            time_entry.insert(0, times[i] if times and i < len(times) else "")
             time_entries.append(time_entry)
 
             vdd_entry = tk.Entry(frame, width=10)
             vdd_entry.grid(row=i + 1, column=2)
+            vdd_entry.insert(0, VDD_Values[i] if VDD_Values and i < len(VDD_Values) else "")
             vdd_entries.append(vdd_entry)
 
             vss_entry = tk.Entry(frame, width=10)
             vss_entry.grid(row=i + 1, column=3)
+            vss_entry.insert(0, VSS_Values[i] if VSS_Values and i < len(VSS_Values) else "")
             vss_entries.append(vss_entry)
 
             compliance_entry = tk.Entry(frame, width=10)
             compliance_entry.grid(row=i + 1, column=4)
+            compliance_entry.insert(0, Comp[i] if Comp and i < len(Comp) else "")
             compliance_entries.append(compliance_entry)
 
         # Extra input fields for measurement configuration
@@ -201,9 +219,9 @@ class TestInfo:
             # 4) draw (use a step style so the change appears instantaneous)
             self.ax.clear()
             self.ax.plot(T_values, VDD_plot, marker="o", linestyle="-",
-                        drawstyle="steps-post",  label="VDD Voltage")
+                          label="VDD Voltage")
             self.ax.plot(T_values, VSS_plot, marker="s", linestyle="--",
-                        drawstyle="steps-post", label="VSS Voltage")
+                         label="VSS Voltage")
 
             self.ax.set_xlabel("Time")
             self.ax.set_ylabel("Voltage")
@@ -217,6 +235,7 @@ class TestInfo:
 
 
     def validate_and_prompt(self, timeout=300):
+        global waveform_data_path
         """
         Validates parameters and prompts the user to fill missing ones via a GUI.
         If the GUI stays open for more than the timeout, the program exits.
@@ -236,38 +255,47 @@ class TestInfo:
             format_name = self.parameters.get("Waveform Format", None)
             waveform_data_name = self.parameters.get("Waveform", None)
             labels = []
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            while not script_dir.endswith("Bench-Test-Automation-Suite-main"):
+                script_dir = os.path.dirname(script_dir)  # Move up one level
+
+            # Ensure the data is stored inside "Bench_Test_Automation_Suite/Data"
+            waveform_data_path = os.path.join(script_dir, "Waveforms", f"{waveform_data_name}.txt")
             
-            waveform_data_path = os.path.join("Waveforms", f"{waveform_data_name}.txt")
+            # print(waveform_data_path)
             if os.path.exists(waveform_data_path):
                 with open(waveform_data_path, "r") as f:
                     VDD_data = [line.strip() for line in f.readlines()]
-                print(f"✅ Loaded waveform format from {waveform_data_path}")
+                print(f"✅ Loaded waveform from {waveform_data_path}")
 
             labels = []
             times = []
             vdd_values = []
-            vss_val = []
-            comp = []
+            vss_values = []
+            comps = []
 
             for line in VDD_data:
-                parts = line.split()
+                parts = line.split(",")
                 label = parts[0]
                 time = float(parts[1])
                 vdd_val= float(parts[2])
-                vss_val = parts[3]
-                comp = parts[4] if len(parts) > 4 else None
+                vss_val = float(parts[3])
+                comp = parts[4] if len(parts) > 4 else ""
 
                 labels.append(label)
                 times.append(time)
                 vdd_values.append(vdd_val)
+                vss_values.append(vss_val)
+                comps.append(comp)
 
 
-            # Example output
-            print("Labels:", labels)
-            print("Times:", times)
-            print("VDD:", vdd_values)
-            print("VSS:", vss_val)
-            print("Compliance:", comp)
+
+            # # Example output
+            # print("Labels:", labels)
+            # print("Times:", times)
+            # print("VDD:", vdd_values)
+            # print("VSS:", vss_values)
+            # print("Compliance:", comps)
 
 
             # if format_name:
@@ -285,7 +313,7 @@ class TestInfo:
             #         print(f"⚠️ Format file not found: {format_path}")
             
             print("📈 Launching waveform editor...")
-            self.launch_waveform_editor(labels)
+            self.launch_waveform_editor( labels, times, vdd_values, vss_values, comps)
 
 
         if not missing_params:

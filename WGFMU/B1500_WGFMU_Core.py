@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import wgfmu_consts as wgc
 
 class WGFMU:
-    def __init__(self, instrument, wgfmus):
+    def __init__(self, instrument, wgfmus, gpib_address):
         """
         Initializes the B1500 WGFMU object.
 
@@ -18,9 +18,10 @@ class WGFMU:
         """
         self.b1500 = instrument
         self.wgfmus = wgfmus
-        # self.wg = self._load_wgfmu_library() UNCHECK THIS WHEN YOU ARE ON THE ACTUAL MACHINE THIS JSUT DOESNT WORK ON MY LAPTOP SO ITS COMMENTED OUT
+        self.wg = self._load_wgfmu_library() # UNCHECK THIS WHEN YOU ARE ON THE ACTUAL MACHINE THIS JSUT DOESNT WORK ON MY LAPTOP SO ITS COMMENTED OUT
 
-        self.wgc = wgc 
+        self.wgc = wgc
+        self.wgfmu_gpib_str = ct.create_string_buffer( bytes( f"GPIB0::{gpib_address}::INSTR" , 'utf-8' ) )
         
         # heres your Current Range Constants its just self.c then your range like 1ua or 10ma
         self.c1ua   = wgc.WGFMU_MEASURE_CURRENT_RANGE_1UA 
