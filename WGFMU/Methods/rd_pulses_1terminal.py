@@ -9,7 +9,7 @@ def rd_pulses_1terminal(self, b1500, ch_vdd, ch_vss,
     self.wg.WGFMU_clear()
     
     # Create waveform on WGFMU
-    self.create_waveform(b1500, alternate_waveform = alternate_waveform, OverrideValue = ["Read", v_rd], num_copies = num_reads, meas_pts1=meas_pts, meas_interval1=meas_interval)
+    self.create_waveform(b1500, alternate_waveform = alternate_waveform, OverrideValue = [("read", v_rd), ("comp", range_rd)], num_copies = num_reads, meas_pts1=meas_pts, meas_interval1=meas_interval)
         
     
     # Run pattern

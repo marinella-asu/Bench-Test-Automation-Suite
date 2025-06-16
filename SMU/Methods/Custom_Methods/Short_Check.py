@@ -101,19 +101,19 @@ def Short_Check(self,
                     print(f"Voltage: {D_StartV}")
                     print(f"Current: {Current}")
                     if SaveData is True:
-                        new_data = [Current, D_StartV]
+                        new_data = [D_StartV, Current]
 
                         # Append along axis 0 (rows)
                         SavedData = np.append(SavedData, [new_data], axis=0)
                     if Resistance < Max_Resistance:
                         if SaveData is True:
-                            b1500.save_numpy_to_csv(b1500.test_info, SavedData, filename = "FormingDataIV")
+                            b1500.save_numpy_to_csv(b1500, SavedData, filename = "ShortCheckDataIV", headers = ["Voltage (V)", "Current (A)"])
                         b1500.connection.write("CL")
                         return True
 
 
                 if D_StartV >= Max_Voltage-.0001:
-                    b1500.save_numpy_to_csv(b1500.test_info, SavedData, filename = "FormingDataIVFailed")
+                    b1500.save_numpy_to_csv(b1500, SavedData, filename = "ShortCheckIVFailed", headers = ["Voltage (V)", "Current (A)"])
                     b1500.connection.write("CL")
                     return False
                 D_StartV += D_Step
@@ -149,5 +149,5 @@ def Short_Check(self,
             return False
     except KeyboardInterrupt as e:
         if SavedData is not None:
-            b1500.save_numpy_to_csv(b1500.test_info, SavedData, filename = "FormingDataIVStopped")
+            b1500.save_numpy_to_csv(b1500, SavedData, filename = "ShortCheckDataIVStopped", headers = ["Voltage (V)", "Current (A)"])
         b1500.connection.write("CL")

@@ -45,12 +45,19 @@ def create_waveform(self, b1500, patt_name="", alternate_waveform = None, Overri
                 label = str(parts[0])
                 time1 = float(parts[1])
                 vdd_val= float(parts[2])
-                if OverrideValue is not None:
-                    if OverrideValue[0] in label:
-                        # print(f"we found the override value for {OverrideValue[0]} and placed {OverrideValue[1]} in the place of our VDD value here")
-                        vdd_val = float(OverrideValue[1])
-                vss_val = float(parts[3])
                 comp = str(parts[4]) if len(parts) > 4 else ""
+                vss_val = float(parts[3])
+
+
+                if OverrideValue is not None:
+                    for key, value in OverrideValue:
+                        if key.lower() == "comp":
+                            comp = str(value)
+                        elif key.lower() == "program" and "program" in label.lower():
+                            vdd_val = float(value)
+                        elif key.lower() == "read" and "read" in label.lower():
+                            vdd_val = float(value)
+                
                 
                 labels.append(label)
                 times.append(time1)

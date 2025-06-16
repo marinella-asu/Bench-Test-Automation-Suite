@@ -324,39 +324,58 @@ class B1500:
         return output_data
     
 
-    def save_numpy_to_csv(self, TestInfo, array, filename = "Saved"):
+    def save_numpy_to_csv(self, b1500, array, filename="Saved", headers=None):
         """
-        Saves a NumPy array as a CSV file in the Data directory using the experimenter's name.
+        Saves a NumPy array as a CSV file with parameters as comments and optional headers.
 
         Parameters:
-        - array (numpy.ndarray): The NumPy array to be saved.
-        - filename (str): The desired base filename (without extension).
-        - TestInfo (object): Object containing test parameters, including "Name".
+        - b1500: Object containing `parameters` dict with metadata.
+        - array (numpy.ndarray): The data to save.
+        - filename (str): Base name for the saved CSV.
+        - headers (list of str): Column headers to write before the data.
 
         Returns:
         - str: Full path to the saved CSV file.
         """
         print("🔄 Starting save_numpy_to_csv method...")
 
-        # Get experimenter's name
-        experimenter = TestInfo.parameters.get("Name", "Unknown_Experimenter")
+        # Extract experiment metadata
+        parameters = b1500.parameters
+        experimenter = parameters.get("Name", "Unknown_Experimenter")
+        sample_id = parameters.get("Sample_ID", "Unknown_Sample")
 
-        # Locate "Bench_Test_Automation_Suite" folder dynamically
+        # Locate main script directory
         script_dir = os.path.dirname(os.path.abspath(__file__))
         while not script_dir.endswith("Bench-Test-Automation-Suite-main"):
-            script_dir = os.path.dirname(script_dir)  # Move up one level
+            script_dir = os.path.dirname(script_dir)
 
-        # Ensure the data is stored inside "Bench_Test_Automation_Suite/Data"
-        base_dir = os.path.join(script_dir, "Data", experimenter)
+        # Create directory for saving
+        base_dir = os.path.join(script_dir, "Data", experimenter, sample_id)
         os.makedirs(base_dir, exist_ok=True)
 
-        # Generate timestamped filename
+        # Create filename with timestamp
         date_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         csv_filepath = os.path.join(base_dir, f"{filename}_{date_str}.csv")
 
-        np.savetxt(csv_filepath, array, delimiter=",", fmt="%.10e")
+        with open(csv_filepath, 'w') as f:
+            # Write parameters as comments
+            def write_params(d, indent=""):
+                for key, val in d.items():
+                    if isinstance(val, dict):
+                        f.write(f"# {indent}{key}:\n")
+                        write_params(val, indent + "  ")
+                    else:
+                        f.write(f"# {indent}{key}: {val}\n")
+            
+            f.write(f"# Saved on {datetime.now().isoformat()}\n")
+            write_params(parameters)
 
+            # Write headers if provided
+            if headers:
+                f.write(",".join(headers) + "\n")
 
-        print(f"✅ NumPy array saved to: {csv_filepath}")
+            # Write the data rows
+            np.savetxt(f, array, delimiter=",", fmt="%.10e")
 
+        print(f"✅ NumPy array with metadata saved to: {csv_filepath}")
         return csv_filepath
