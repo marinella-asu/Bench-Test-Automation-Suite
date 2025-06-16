@@ -4,27 +4,40 @@ import datetime
 import sys
 
 
-def ProgramAndRTN(self,
-                  b1500=None,
-                  param_name=None,
-                  min_gtarget=300e-6,
-                  max_gtarget=1000e-6,
-                  num_level=7,
-                  num=30,
-                  num_reads=10,
-                  v_rd=0.1,
-                  v_prg=1.0,
-                  v_rst = -1,
-                  vstep=0.1,
-                  v_prg_max=9.8,
-                  v_count=0,
-                  v_countmax=40,
-                  goffset=1e-6,
-                  ProgramTargetOffset = 10e-6,
-                  read_waveform = None,
-                  program_waveform = None,
-                  RTN_waveform = None,
-                  **overrides):
+def SmartProgramAndRTN(self,
+                b1500=None,
+                param_name=None,
+                min_gtarget=300e-6,
+                max_gtarget=1000e-6,
+                num_level=7,
+                num=30,
+                num_reads=10,
+                v_rd=0.1,
+                v_prg=1.0,
+                v_rst = -1,
+                vstep=0.1,
+                v_prg_max=9.8,
+                v_count=0,
+                v_countmax=40,
+                goffset=1e-6,
+                ProgramTargetOffset = 10e-6,
+                read_waveform = None,
+                program_waveform = None,
+                RTN_waveform = None,
+                boundary_super_coarse = 100e-6,
+                boundary_coarse = 50e-6,
+                boundary_fine = 50e-6,
+                boundary_ultra_fine = 0.5e-6,
+                super_coarse_step = 100e-6,
+                coarse_step = 25e-6,
+                fine_step = 25e-6,
+                ultra_fine_step = 0.5e-6,
+                ultra_ultra_fine_step = 0.5e-6,
+                use_super_coarse = False,
+                use_fine = False,
+                use_ultra_fine = False,
+                use_ultra_ultra_fine = False,
+                **overrides):
     try:
         now = datetime.datetime.now()
         date_time = now.strftime("%Y-%m-%d_%H-%M-%S")
@@ -47,6 +60,19 @@ def ProgramAndRTN(self,
             "read_waveform": read_waveform,
             "program_waveform": program_waveform,
             "RTN_waveform": RTN_waveform,
+            "boundary_super_coarse": boundary_super_coarse,
+            "boundary_coarse": boundary_coarse,
+            "boundary_fine": boundary_fine,
+            "boundary_ultra_fine": boundary_ultra_fine,
+            "super_coarse_step": super_coarse_step,
+            "coarse_step": coarse_step,
+            "fine_step": fine_step,
+            "ultra_fine_step": ultra_fine_step,
+            "ultra_ultra_fine_step": ultra_ultra_fine_step,
+            "use_super_coarse": use_super_coarse,
+            "use_fine": use_fine,
+            "use_ultra_fine": use_ultra_fine,
+            "use_ultra_ultra_fine": use_ultra_ultra_fine
         }
     
         if b1500 and param_name:
@@ -76,21 +102,44 @@ def ProgramAndRTN(self,
         read_waveform = final_params["read_waveform"]
         program_waveform = final_params["program_waveform"]
         RTN_waveform    = final_params["RTN_waveform"]
+        boundary_super_coarse = final_params["boundary_super_coarse"]
+        boundary_coarse = final_params["boundary_coarse"]
+        boundary_fine = final_params["boundary_fine"]
+        boundary_ultra_fine = final_params["boundary_ultra_fine"]
+        super_coarse_step = final_params["super_coarse_step"]
+        coarse_step = final_params["coarse_step"]
+        fine_step = final_params["fine_step"]
+        ultra_fine_step = final_params["ultra_fine_step"]
+        ultra_ultra_fine_step = final_params["ultra_ultra_fine_step"]
+        use_super_coarse = final_params["use_super_coarse"]
+        use_fine = final_params["use_fine"]
+        use_ultra_fine = final_params["use_ultra_fine"]
+        use_ultra_ultra_fine = final_params["use_ultra_ultra_fine"]
+
+
         
         self.wg.WGFMU_clear()
         
         all_conductances = []  # To store each conductance column
         
-        gtargets = np.linspace(min_gtarget, max_gtarget, num=num_level)
+        # gtargets 
+        gtargets = generate_gtargets(max_gtarget, min_gtarget,
+                                    boundary_super_coarse, boundary_coarse, boundary_fine, boundary_ultra_fine,
+                                    super_coarse_step, coarse_step, fine_step, ultra_fine_step, ultra_ultra_fine_step,
+                                    use_super_coarse, use_fine, use_ultra_fine, use_ultra_ultra_fine)
         print("###################################")
         print(f"The target conductances are {gtargets}")
         print("###################################")
         i = 0
         for gtarget in gtargets:
-            gmin = gtarget - ProgramTargetOffset #Target Range
-            gmax = gtarget + ProgramTargetOffset
+            tolerance = get_tolerance(gtarget)
+            gmin = max(gtarget - tolerance, 0)
+            gmax = gtarget + tolerance
             succeed = False
-    
+
+
+            print(f"[{i+1}] gtarget = {gtarget:.2e}, tolerance = ±{tolerance:.1e} → range = [{gmin:.2e}, {gmax:.2e}]")
+
             while not succeed and v_count < v_countmax:
                 results1 = self.prg_2terminal(
                     b1500, v_prg=v_prg, v_rst = v_rst, v_prg_max=v_prg_max, v_rd=v_rd, vstep = vstep,
@@ -107,7 +156,7 @@ def ProgramAndRTN(self,
                     num_reads=num_reads, t_start=1e-6, t_settle=3e-6, t_read=10e-3,
                     rd_period=100e-3, meas_pts=1, meas_interval=1e-4, meas_averaging=-1,
                     t_rise=100e-9, v_rd=v_rd, v_off=0.0,
-                    range_rd=self.wgc.get_wgfmu_range_for_gtarget(gtarget),
+                    range_rd=get_wgfmu_range_for_gtarget(gtarget),
                     offset_times=False, wgfmu_open_first=True, wgfmu_close_after=True, alternate_waveform = read_waveform)
     
                 everything = results[2]
@@ -115,8 +164,9 @@ def ProgramAndRTN(self,
                 # print(all_except_first)
                 g_d = sum(all_except_first) / len(all_except_first)
     
-                gmin1 = gmin - goffset
-                gmax1 = gmax + goffset
+                goffset_now = get_goffset(gtarget)
+                gmin1 = gmin - goffset_now
+                gmax1 = gmax + goffset_now
                 succeed = (g_d >= gmin1) and (g_d <= gmax1)
     
                 print(f"The state: {succeed} with conductance: {g_d} in range {gmin1} to {gmax1}")
@@ -199,6 +249,62 @@ def ProgramAndRTN(self,
             b1500.save_numpy_to_csv(b1500, final_array, filename="StoppedProgramRTNOutput", headers = headers)
          print(e)
 
+def generate_gtargets(Gmax, Gmin,
+                      boundary_super_coarse, boundary_coarse, boundary_fine, boundary_ultra_fine,
+                      super_coarse_step, coarse_step, fine_step, ultra_fine_step, ultra_ultra_fine_step,
+                      use_super_coarse=True, use_fine=False, use_ultra_fine=False, use_ultra_ultra_fine=False):
+    
+    gtargets = []
+    
+    # super-coarse
+    if use_super_coarse:
+        super_coarse_range = np.arange(Gmax, boundary_super_coarse - super_coarse_step, -super_coarse_step)
+        gtargets.extend(np.round(super_coarse_range, 9))
+        if boundary_super_coarse not in gtargets:
+            gtargets.append(np.round(boundary_super_coarse, 9))
+    
+    # coarse
+    coarse_range = np.arange(boundary_super_coarse - coarse_step, boundary_coarse - coarse_step, -coarse_step)
+    gtargets.extend(np.round(coarse_range, 9))
+    if boundary_coarse not in gtargets:
+        gtargets.append(np.round(boundary_coarse, 9))
+
+    # fine
+    if use_fine:
+        fine_range = np.arange(boundary_coarse - fine_step, boundary_fine - fine_step, -fine_step)
+        gtargets.extend(np.round(fine_range, 9))
+        if boundary_fine not in gtargets:
+            gtargets.append(np.round(boundary_fine, 9))
+
+    # ultra-fine
+    if use_ultra_fine:
+        ultra_fine_range = np.arange(boundary_fine - ultra_fine_step, boundary_ultra_fine - ultra_fine_step, -ultra_fine_step)
+        gtargets.extend(np.round(ultra_fine_range, 9))
+        if boundary_ultra_fine not in gtargets:
+            gtargets.append(np.round(boundary_ultra_fine, 9))
+
+    # ultra-ultra-fine
+    if use_ultra_ultra_fine:
+        ultra_ultra_fine_range = np.arange(boundary_ultra_fine - ultra_ultra_fine_step, Gmin - ultra_ultra_fine_step, -ultra_ultra_fine_step)
+        gtargets.extend(np.round(ultra_ultra_fine_range, 9))
+        if Gmin not in gtargets:
+            gtargets.append(np.round(Gmin, 9))
+    
+    gtargets = [g for g in gtargets if g >= Gmin]
+    gtargets = sorted(np.unique(gtargets), reverse=True)
+    
+    return np.array(gtargets)
+
+def get_goffset(gtarget):
+    if gtarget >= 50e-6:
+        return 1e-6
+    elif gtarget >= 1e-6:
+        return 0.1e-6
+    elif gtarget >= 0.1e-6:
+        return 0.05e-6
+    else:
+        return 0.01e-6
+    
 def get_wgfmu_range_for_gtarget(self, gtarget):
     if gtarget >= 100e-6:
         return self.wgc.WGFMU_MEASURE_CURRENT_RANGE_1MA
@@ -208,3 +314,11 @@ def get_wgfmu_range_for_gtarget(self, gtarget):
         return self.wgc.WGFMU_MEASURE_CURRENT_RANGE_1UA
     else:
         raise ValueError(f"Target conductance {gtarget} S is too small for reliable WGFMU measurement.")
+    
+def get_tolerance(gtarget):
+      if gtarget >= 50e-6:
+        return 1e-6
+      elif gtarget >= 1e-6:
+        return 0.4e-6
+      else:
+        return 10e-9

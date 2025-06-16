@@ -14,8 +14,9 @@ def Switch_Test(self,
                 ICompSet=1e-3,
                 ICompReset=100e-3,
                 ICompRead = 100e-3,
-                SaveData=False,
+                SaveData=True,
                 Reset_Voltage_Step =.1,
+                Min_MemWindow = 1.1,
                 
                 **overrides):
 
@@ -31,7 +32,8 @@ def Switch_Test(self,
         "ICompReset": ICompReset,
         "ICompRead": ICompRead,
         "SaveData": SaveData,
-        "Reset_Voltage_Step": Reset_Voltage_Step
+        "Reset_Voltage_Step": Reset_Voltage_Step,
+        "Min_MemWindow": Min_MemWindow,
     }
 
     # Load from parameters if specified
@@ -57,6 +59,7 @@ def Switch_Test(self,
     Pos_Voltage = final_params["Pos_Voltage"]
     VStep           = final_params["VStep"]
     Reset_Voltage_Step=final_params["Reset_Voltage_Step"]
+    Min_MemWindow   = final_params["Min_MemWindow"]
 
 
     try:
@@ -237,7 +240,7 @@ def Switch_Test(self,
                 print(f"Set conductance of {Initial_Read / Read_Voltage}. Reset Conductance of {Final_Read / Read_Voltage}\n\n\n")
                 Memory_Windows.append(Memory_Window)
 
-                if Memory_Window <= 1.1:
+                if Memory_Window <= Min_MemWindow:
                     print(f"[FAIL] Memory Window too small: {Memory_Window}")
                     b1500.connection.write("CL")
                     if abs(Final_Read) <= 1e-9:
@@ -246,7 +249,8 @@ def Switch_Test(self,
                         for loopnumber in range(len(Memory_Windows)):
                             print(f"Memory Window of sweep {loopnumber} is: {Memory_Windows[int(loopnumber)]}")
                         if SaveData is True:
-                            b1500.save_numpy_to_csv(b1500.test_info, IVData, filename="SwitchingDataIVFailed")
+                            headers = ["Voltage (V)"] + [f"Loop {i+1} (A)" for i in range(num_loops)]
+                            b1500.save_numpy_to_csv(b1500, IVData, filename="SwitchingDataIVFailed", headers=headers)
                         b1500.connection.write("CL")
                         Neg_Voltage -= Reset_Voltage_Step
                         restart = True
@@ -258,7 +262,8 @@ def Switch_Test(self,
                     else:
                         print(f"Memory Window of sweep 1 is: {Memory_Windows}")
                         if SaveData is True:
-                            b1500.save_numpy_to_csv(b1500.test_info, IVData, filename="SwitchingDataIVFailed")
+                            headers = ["Voltage (V)"] + [f"Loop {i+1} (A)" for i in range(num_loops)]
+                            b1500.save_numpy_to_csv(b1500, IVData, filename="SwitchingDataIVFailed", headers=headers)
                         b1500.connection.write("CL")
                         Neg_Voltage -= Reset_Voltage_Step
                         restart = True
@@ -281,7 +286,8 @@ def Switch_Test(self,
                 looping = True
                 continue
             if SaveData is True:
-                b1500.save_numpy_to_csv(b1500.test_info, IVData, filename="SwitchingDataIVSuccess")
+                headers = ["Voltage (V)"] + [f"Loop {i+1} (A)" for i in range(num_loops)]
+                b1500.save_numpy_to_csv(b1500, IVData, filename="SwitchingDataIVSuccess", headers=headers)
         
             for loopnumber in range(num_loops):
                 print(f"Memory Window of sweep {loopnumber+1} is: {Memory_Windows[int(loopnumber)]}")
@@ -305,7 +311,8 @@ def Switch_Test(self,
         
     except KeyboardInterrupt as e:
         if SaveData is True:
-            b1500.save_numpy_to_csv(b1500.test_info, IVData, filename="SwitchingDataIVStopped")
+            headers = ["Voltage (V)"] + [f"Loop {i+1} (A)" for i in range(num_loops)]
+            b1500.save_numpy_to_csv(b1500, IVData, filename="SwitchingDataIVStopped", headers=headers)
         b1500.connection.write("CL")
 
     

@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 
-def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_rst = -1, v_prg_max = 9.8, v_rd = .1, vstep = 0.1, gmin = 300e-6, gmax = 1000e-6, pulses_per_voltage = 30, read_waveform = "Evan_Reram_4", program_waveform = "Evan_Reram_4", **overrides):
+def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_rst = -1, v_prg_max = 9.8, v_rd = .1, vstep = 0.1, gmin = 300e-6, gmax = 1000e-6, pulses_per_voltage = 30, ranging_rd = 6002, read_waveform = "Evan_Reram_4", program_waveform = "Evan_Reram_4", **overrides):
 
     now = datetime.datetime.now()
     date_time = now.strftime("%Y-%m-%d_%H-%M-%S")
@@ -16,6 +16,7 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_rst = -1, v_pr
         "gmin": gmin,
         "gmax": gmax,
         "pulses_per_voltage": pulses_per_voltage,
+        "ranging_rd": ranging_rd,
         "read_waveform" : read_waveform,
         "program_waveform" : program_waveform
     }
@@ -38,6 +39,7 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_rst = -1, v_pr
     gmin = final_params["gmin"]
     gmax =  final_params["gmax"]
     pulses_per_voltage = final_params["pulses_per_voltage"]
+    ranging_rd  = final_params["ranging_rd"]
     read_waveform = final_params["read_waveform"]
     program_waveform = final_params["program_waveform"]
     
@@ -89,7 +91,7 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_rst = -1, v_pr
         self.wg.WGFMU_clear()
         
         # Create waveform on WGFMU
-        self.create_waveform(b1500, alternate_waveform = program_waveform, OverrideValue = ["Program", v_prg])
+        self.create_waveform(b1500, alternate_waveform = program_waveform, OverrideValue = [("program", v_prg), ("comp", ranging_rd)])
         
         self.wgfmu_run([b1500.test_info.ch_vdd , b1500.test_info.ch_vss ], open_first=True, close_after=True)
         
