@@ -124,25 +124,25 @@ parameters = {
 }
 
 # Initialize Unified B1500 (includes parameter validation)
-b1500 = B1500(unit_label = 'A', parameters=parameters)
+b1500 = B1500(unit_label = 'Old', parameters=parameters)
 
 didItShort = b1500.smu.Short_Check(b1500, "Short_Check_Test")
 print(f"We were able to short the two pads?: {didItShort}")
 
-didItForm = b1500.smu.Forming(b1500, "Form_Test")
-print(f"We Formed the Device?: {didItForm}")
+# didItForm = b1500.smu.Forming(b1500, "Form_Test")
+# print(f"We Formed the Device?: {didItForm}")
 
-didweSwitch = b1500.smu.Switch_Test(b1500, "Switch_Test")
-print(f"Did we successfully switch through all the loops?: {didweSwitch}")
+# didweSwitch = b1500.smu.Switch_Test(b1500, "Switch_Test")
+# print(f"Did we successfully switch through all the loops?: {didweSwitch}")
 
-didweProgram = b1500.wgfmu.ProgramAndRTN(b1500, "Program")
-print(f"Did we successfully Program?: {didweProgram}")
+# didweProgram = b1500.wgfmu.ProgramAndRTN(b1500, "Program")
+# print(f"Did we successfully Program?: {didweProgram}")
 
-didweSmartProgram = b1500.wgfmu.SmartProgramAndRTN(b1500, "SmartProgram")
-print(f"Did we successfully Program?: {didweSmartProgram}")
+# didweSmartProgram = b1500.wgfmu.SmartProgramAndRTN(b1500, "SmartProgram")
+# print(f"Did we successfully Program?: {didweSmartProgram}")
 
-didweRetention = b1500.ReRamRetention(b1500, "Retention")
-print(f"Did we successfully Retention?: {didweRetention}")
+# didweRetention = b1500.ReRamRetention(b1500, "Retention")
+# print(f"Did we successfully Retention?: {didweRetention}")
 
 b1500.connection.write("CL") #Used to make absolutely sure the B1500 and WGFMU are set to a default safe state upon program exit
 b1500.wgfmu.wg.WGFMU_clear()

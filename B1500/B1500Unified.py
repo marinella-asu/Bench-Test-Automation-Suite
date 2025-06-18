@@ -41,7 +41,7 @@ CHANNEL_MAP = {
 # Define configurations for each B1500 unit
 B1500_CONFIG = {
     "A": {"gpib_address": 17, "smu_channels": [301, 401, 501, 601], "wgfmu_channels": [201, 202]},
-    "B": {"gpib_address": 18, "smu_channels": [302, 402, 502, 602], "wgfmu_channels": [103, 104]}, #Change
+    "Old": {"gpib_address": 17, "smu_channels": [201, 301, 401, 501], "wgfmu_channels": [103, 104]}, #Change
     "C": {"gpib_address": 19, "smu_channels": [303, 403, 503, 603], "wgfmu_channels": [105, 106]}, #Change 
     "D": {"gpib_address": 20, "smu_channels": [304, 404, 504, 604], "wgfmu_channels": [107, 108]}, #Change
 }
@@ -91,7 +91,7 @@ class B1500:
         # Initialize SMU and WGFMU objects
         
         self.smu = SMU(self.connection, self.smus)
-        # self.wgfmu = WGFMU(self.connection, self.wgfmus, self.gpib_address)
+        self.wgfmu = WGFMU(self.connection, self.wgfmus, self.gpib_address)
 
         # Initialize TestInfo and validate parameters
         self.test_info = TestInfo(parameters or {})
