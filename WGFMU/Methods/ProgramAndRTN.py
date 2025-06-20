@@ -94,7 +94,7 @@ def ProgramAndRTN(self,
             while not succeed and v_count < v_countmax:
                 results1 = self.prg_2terminal(
                     b1500, v_prg=v_prg, v_rst = v_rst, v_prg_max=v_prg_max, v_rd=v_rd, vstep = vstep,
-                    t_prg=100e-9, ranging_rd=get_wgfmu_range_for_gtarget(gtarget),
+                    t_prg=100e-9, ranging_rd=self.get_wgfmu_range_for_gtarget(gtarget),
                     gmin=gmin, gmax=gmax, pulses_per_voltage=num, read_waveform = read_waveform, program_waveform = program_waveform)
     
                 self.wg.WGFMU_setForceDelay(b1500.test_info.ch_vdd, 100)
@@ -107,7 +107,7 @@ def ProgramAndRTN(self,
                     num_reads=num_reads, t_start=1e-6, t_settle=3e-6, t_read=10e-3,
                     rd_period=100e-3, meas_pts=1, meas_interval=1e-4, meas_averaging=-1,
                     t_rise=100e-9, v_rd=v_rd, v_off=0.0,
-                    range_rd=self.wgc.get_wgfmu_range_for_gtarget(gtarget),
+                    range_rd=self.get_wgfmu_range_for_gtarget(gtarget),
                     offset_times=False, wgfmu_open_first=True, wgfmu_close_after=True, alternate_waveform = read_waveform)
     
                 everything = results[2]
@@ -139,7 +139,7 @@ def ProgramAndRTN(self,
                 num_reads=1, t_start=1e-6, t_settle=3e-6, t_read=10e-3,
                 rd_period=100e-3, meas_pts=3001, meas_interval=1e-3, meas_averaging=-1,
                 t_rise=100e-9, v_rd=v_rd, v_off=0.0,
-                range_rd=get_wgfmu_range_for_gtarget(gtarget),
+                range_rd=self.get_wgfmu_range_for_gtarget(gtarget),
                 offset_times=False, wgfmu_open_first=True, wgfmu_close_after=True, alternate_waveform = RTN_waveform)
     
             times, currents, conductances = results2

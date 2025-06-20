@@ -7,14 +7,14 @@ def Forming(self,
                 b1500=None, 
                 param_name=None,
                 SMU_Pair=[1, 2],                # These are the SMUs we'll use to check if they're shorted, format: [smu#, smu#] the second smu is grounded
-                Max_Resistance=200,             # Maximum resistance (Ohms) to still consider the path a "short"
-                Max_Voltage=1,                  # Maximum voltage applied during the short check
+                Max_Resistance=10000,             # Maximum resistance (Ohms) to still consider the path a "short"
+                Max_Voltage=7,                  # Maximum voltage applied during the short check
                 IComp=1e-3, 
-                Dynamic_Check=False,           # If True, ramps voltage instead of applying it directly
-                D_StartV=0,                     # (Dynamic only) Starting voltage of ramp
-                D_Step=0.5,                     # (Dynamic only) Step size of voltage ramp
-                D_Wait=10,                      # (Dynamic only) Wait time between voltage steps
-                SaveData = False,
+                Dynamic_Check=True,           # If True, ramps voltage instead of applying it directly
+                D_StartV=1,                     # (Dynamic only) Starting voltage of ramp
+                D_Step=0.1,                     # (Dynamic only) Step size of voltage ramp
+                D_Wait=2,                      # (Dynamic only) Wait time between voltage steps
+                SaveData = True,
                 Reset_Voltage = -1,
                 Reset_Compliance = 100e-3,
                 **overrides):                  # Manual per-call overrides (e.g. D_Wait=5)
@@ -115,20 +115,21 @@ def Forming(self,
                         SavedData = np.append(SavedData, [new_data], axis=0)
                     if Resistance < Max_Resistance:
                         if SaveData is True:
-                            b1500.save_numpy_to_csv(b1500, SavedData, filename = "FormingDataIV", headers = ["Voltage (V)", "Current (A)"])
-                            
-                            plt.plot(SavedData[:, 0], SavedData[:, 1], label='Forming IV', marker='o', linestyle='-')
-                            plt.xlabel('Voltage (V)')
-                            plt.ylabel('Current (A)')
-                            plt.title(f'I-V Curves for Reset Loop')
-                            plt.grid(True)
-                            plt.legend()
-                            plt.tight_layout()
-                            plt.show()
+                            if len(SavedData) > 2:
+                                b1500.save_numpy_to_csv(b1500, SavedData, filename = "FormingDataIV", headers = ["Voltage (V)", "Current (A)"])
+                                
+                                plt.plot(SavedData[:, 0], SavedData[:, 1], label='Forming IV', marker='o', linestyle='-')
+                                plt.xlabel('Voltage (V)')
+                                plt.ylabel('Current (A)')
+                                plt.title(f'I-V Curves for Reset Loop')
+                                plt.grid(True)
+                                plt.legend()
+                                plt.tight_layout()
+                                plt.show()
                             
                         print("The device formed now resetting the device")
                         #Make the Forming finish and reset the device 
-                        results_neg = self.IVSweep(b1500=b1500, 
+                        results = self.IVSweep(b1500=b1500, 
                             param_name=None,
                             smu_nums = SMU_Pair[0],
                             vstart=0,
@@ -140,9 +141,14 @@ def Forming(self,
                             plot_data = False,
                             PULSED_SWEEP = False,
                             mode = 3)
-
-                        voltages_neg = results_neg[1]
-                        currents_neg = results_neg[2]
+                        
+                        times = results[0]
+                        voltages_neg = results[1]
+                        currents_neg = results[2]
+                        vind = np.argmax(abs(voltages_neg))
+                        R_last_point = voltages_neg[vind] / currents_neg[vind]
+                        print( f"Resistance at {voltages_neg[vind]:.4g} V:    {R_last_point/1e3:.4g} kOhm" ) 
+                        print( f"Conductance at {voltages_neg[vind]:.4g} V:    {(1/R_last_point)*1e6:.4g} uS" )
                         plt.plot(voltages_neg, currents_neg, label=f'Reset IV Loop', marker='o', linestyle='-')
                         plt.xlabel('Voltage (V)')
                         plt.ylabel('Current (A)')
@@ -194,6 +200,7 @@ def Forming(self,
                 
                 if Resistance < Max_Resistance:
                     if SaveData is True:
+                        if len(SavedData) > 2:
                             b1500.save_numpy_to_csv(b1500, SavedData, filename = "FormingDataIV", headers = ["Voltage (V)", "Current (A)"])
                     b1500.connection.write("CL")
                     return True

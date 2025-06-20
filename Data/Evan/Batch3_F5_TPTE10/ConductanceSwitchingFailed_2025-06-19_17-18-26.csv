@@ -1,0 +1,24 @@
+# Saved on 2025-06-19T17:18:26.802591
+# Name: Evan
+# Sample_ID: Batch3_F5_TPTE10
+# Waveform Format: Reram
+# Waveform: ReRam_Program_Evan
+# VDD WGFMU: 1
+# VSS WGFMU: 2
+# trd: 0.0001
+# pts_per_meas: 1
+# Switch_Test:
+#   SMU_Pair: [2, 1]
+#   num_loops: 5
+#   Read_Voltage: 0.1
+#   Pos_Voltage: 0.01
+#   Neg_Voltage: -2
+#   Min_MemWindow: 1.1
+#   Reset_Voltage_Step: 0.1
+#   ICompSet: 0.001
+#   ICompReset: 0.1
+#   ICompRead: 0.1
+#   SaveData: True
+Set Conductance,Reset Conductance
+1.1091800000e-03,1.0783400000e-03
+1.0780000000e-03,1.0698400000e-03

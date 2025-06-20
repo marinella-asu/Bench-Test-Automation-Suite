@@ -6,18 +6,18 @@ import time
 # Define experiment parameters
 parameters = {
     "Name": "Evan", #These parameters must be changed by the experimenter for better data filing and collection and determines where your data is stored and what it's name is stored as
-    "Sample_ID": "Batch3_F4_1",
+    "Sample_ID": "Batch3_F5_TPTE37",
 
     "Waveform Format": "Reram",  # Loads a waveform format (Used in unfinished Waveform creation GUI disregard for now)
     "Waveform": "ReRam_Program_Evan", #Set this to Load a Waveform into the Editor
-    "Waveform Editor": "ask",   #Uncomment this to load the waveform editor on program runtime
+    # "Waveform Editor": "ask",   #Uncomment this to load the waveform editor on program runtime
     "VDD WGFMU": 1, #This sets what channel of the WGFMU the VDD waveform is applied to
     "VSS WGFMU": 2, #This sets what channel of the WGFMU the VSS waveform is applied to
     "trd": 1e-4, #Used during WGFMU waveform generation
     "pts_per_meas" : 1, #Used during WGFMU waveform generation
     
     "Short_Check_Test": { 
-        "SMU_Pair": [2, 3], #This is the list of the two SMUs well use in this order [measured, ground] 
+        "SMU_Pair": [1, 2], #This is the list of the two SMUs well use in this order [measured, ground] 
         "Max_Resistance": 200, #This is the maximum resistance we would consider to be a short between two probe tips
         "Max_Voltage": .1, #Max Voltage We can use to test if both probes are shorted
         "IComp": 100e-3, #Compliance limit used during the test
@@ -35,10 +35,10 @@ parameters = {
         "Max_Voltage": 7, #Max Voltage We can use before turning off the test
         "IComp": 1e-3, #Compliance limit used during the forming operation
         "Dynamic_Check": True, #This sets the operation to do a staircase sweep instead of holding a continuous voltage value
-        "D_StartV": 3, #Starting voltage for the sweep (only used if we are doing a dynamic sweep)
+        "D_StartV": 1, #Starting voltage for the sweep (only used if we are doing a dynamic sweep)
         "D_Step": .1, #Voltage step increased after D_Wait seconds (only used if we are doing a dynamic sweep)
         "D_Wait": 2, #Wait time per each voltage in seconds (only used if we are doing a dynamic sweep)
-        "Reset_Voltage": -1, #This is the reset voltage used after the device is successfully formed so we can start future tests with each device in its reset state
+        "Reset_Voltage": -1.5, #This is the reset voltage used after the device is successfully formed so we can start future tests with each device in its reset state
         "Reset_Compliance": 100e-3, #This is the compliance used during the reset sweep after forming
         "SaveData": True,  #Save the data to csv?
 
@@ -46,9 +46,9 @@ parameters = {
 
     "Switch_Test": {
         "SMU_Pair": [1,2], #This is the list of the two SMUs well use in this order [measured, ground] 
-        "num_loops": 2, #This is how many set-reset loops the code will run through
+        "num_loops": 5, #This is how many set-reset loops the code will run through
         "Read_Voltage": .1, #This is votlage the device will  be read at for testing the conductance level and comparing our memory windows
-        "Pos_Voltage": 2, #This is the maximum positive voltage that the device will be swept to during the set operation
+        "Pos_Voltage": 2.3, #This is the maximum positive voltage that the device will be swept to during the set operation
         "Neg_Voltage": -1, #This is the starting voltage the device will be swept to during reset (This increments if our memory window is not large enough >MinMemWindow)
         "Min_MemWindow": 1.1,
         "Reset_Voltage_Step": .1, #This is the step by which the reset voltage will decrease by every loop where we do not see a substantial change between set and reset
@@ -66,8 +66,8 @@ parameters = {
         "num_reads":   10,       # ‑‑ How many times we read the device during validation to verify we did program the correct state
         "v_rd":        0.1,      # ‑‑ Read Voltage during validation and RTN
         "v_prg":       1,      # ‑‑ Initial Set Voltage for programming
-        "v_rst":       -1,      # -- Initial Reset Voltage for programming
-        "v_prg_max":   2.3,      # ‑‑ Maximum value used for Set operation
+        "v_rst":       -1.5,      # -- Initial Reset Voltage for programming
+        "v_prg_max":   10,      # ‑‑ Maximum value used for Set operation
         "v_countmax":  1000,       # ‑‑ Maximum times we'll try to program and validate before giving up on the state 
         "v_count":     0,        # initial state of counter for how many times we'll try to program and validate before giving up on the state 
         "goffset":     1e-6, #Validation Range +- offset 
@@ -124,10 +124,10 @@ parameters = {
 }
 
 # Initialize Unified B1500 (includes parameter validation)
-b1500 = B1500(unit_label = 'Old', parameters=parameters)
+b1500 = B1500(unit_label = 'A', parameters=parameters)
 
-didItShort = b1500.smu.Short_Check(b1500, "Short_Check_Test")
-print(f"We were able to short the two pads?: {didItShort}")
+# didItShort = b1500.smu.Short_Check(b1500, "Short_Check_Test")
+# print(f"We were able to short the two pads?: {didItShort}")
 
 # didItForm = b1500.smu.Forming(b1500, "Form_Test")
 # print(f"We Formed the Device?: {didItForm}")
@@ -135,8 +135,8 @@ print(f"We were able to short the two pads?: {didItShort}")
 # didweSwitch = b1500.smu.Switch_Test(b1500, "Switch_Test")
 # print(f"Did we successfully switch through all the loops?: {didweSwitch}")
 
-# didweProgram = b1500.wgfmu.ProgramAndRTN(b1500, "Program")
-# print(f"Did we successfully Program?: {didweProgram}")
+didweProgram = b1500.wgfmu.ProgramAndRTN(b1500, "Program")
+print(f"Did we successfully Program?: {didweProgram}")
 
 # didweSmartProgram = b1500.wgfmu.SmartProgramAndRTN(b1500, "SmartProgram")
 # print(f"Did we successfully Program?: {didweSmartProgram}")

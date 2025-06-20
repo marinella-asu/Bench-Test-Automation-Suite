@@ -79,6 +79,7 @@ def Switch_Test(self,
 
         # Preallocate data: voltages in first column
         IVData = np.zeros((num_points, num_loops + 1))  # Don't assign voltages here anymore
+        Conductances = np.empty((0, 2))
         Memory_Windows = []
         
 
@@ -239,7 +240,11 @@ def Switch_Test(self,
                 print(f"\n\n\nMemory Window of sweep {loopnumber} is: {Memory_Window}")
                 print(f"Set conductance of {Initial_Read / Read_Voltage}. Reset Conductance of {Final_Read / Read_Voltage}\n\n\n")
                 Memory_Windows.append(Memory_Window)
+                new_data = [Initial_Read / Read_Voltage, Final_Read / Read_Voltage]
 
+                # Append along axis 0 (rows)
+                Conductances = np.append(Conductances, [new_data], axis=0)
+                
                 if Memory_Window <= Min_MemWindow:
                     print(f"[FAIL] Memory Window too small: {Memory_Window}")
                     b1500.connection.write("CL")
@@ -251,6 +256,8 @@ def Switch_Test(self,
                         if SaveData is True:
                             headers = ["Voltage (V)"] + [f"Loop {i+1} (A)" for i in range(num_loops)]
                             b1500.save_numpy_to_csv(b1500, IVData, filename="SwitchingDataIVFailed", headers=headers)
+                            headers = ["Set Conductance", "Reset Conductance"]
+                            b1500.save_numpy_to_csv(b1500, Conductances, filename="ConductanceSwitchingFailed", headers=headers)
                         b1500.connection.write("CL")
                         Neg_Voltage -= Reset_Voltage_Step
                         restart = True
@@ -264,6 +271,8 @@ def Switch_Test(self,
                         if SaveData is True:
                             headers = ["Voltage (V)"] + [f"Loop {i+1} (A)" for i in range(num_loops)]
                             b1500.save_numpy_to_csv(b1500, IVData, filename="SwitchingDataIVFailed", headers=headers)
+                            headers = ["Set Conductance", "Reset Conductance"]
+                            b1500.save_numpy_to_csv(b1500, Conductances, filename="ConductanceSwitchingFailed", headers=headers)
                         b1500.connection.write("CL")
                         Neg_Voltage -= Reset_Voltage_Step
                         restart = True
@@ -288,6 +297,8 @@ def Switch_Test(self,
             if SaveData is True:
                 headers = ["Voltage (V)"] + [f"Loop {i+1} (A)" for i in range(num_loops)]
                 b1500.save_numpy_to_csv(b1500, IVData, filename="SwitchingDataIVSuccess", headers=headers)
+                headers = ["Set Conductance", "Reset Conductance"]
+                b1500.save_numpy_to_csv(b1500, Conductances, filename="ConductanceSwitchingSuccess", headers=headers)
         
             for loopnumber in range(num_loops):
                 print(f"Memory Window of sweep {loopnumber+1} is: {Memory_Windows[int(loopnumber)]}")
@@ -313,6 +324,8 @@ def Switch_Test(self,
         if SaveData is True:
             headers = ["Voltage (V)"] + [f"Loop {i+1} (A)" for i in range(num_loops)]
             b1500.save_numpy_to_csv(b1500, IVData, filename="SwitchingDataIVStopped", headers=headers)
+            headers = ["Set Conductance", "Reset Conductance"]
+            b1500.save_numpy_to_csv(b1500, Conductances, filename="ConductanceSwitchingStopped", headers=headers)
         b1500.connection.write("CL")
 
     

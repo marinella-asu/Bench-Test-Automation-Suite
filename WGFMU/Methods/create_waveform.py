@@ -108,15 +108,15 @@ def create_waveform(self, b1500, patt_name="", alternate_waveform = None, Overri
                 # Handle compliance
                 if "comp" in label_val:
                     compliance_time.append(time_val)
-                    if comp_val == "1ua":
+                    if comp_val == "1ua" or comp_val == "6001":
                         compliance_data.append((wgc.WGFMU_MEASURE_CURRENT_RANGE_1UA))
-                    elif comp_val == "10ua":
+                    elif comp_val == "10ua" or comp_val == "6002":
                         compliance_data.append((wgc.WGFMU_MEASURE_CURRENT_RANGE_10UA))
-                    elif comp_val == "100ua":
+                    elif comp_val == "100ua" or comp_val == "6003":
                         compliance_data.append((wgc.WGFMU_MEASURE_CURRENT_RANGE_100UA))
-                    elif comp_val == "1ma":
+                    elif comp_val == "1ma" or comp_val == "6004":
                         compliance_data.append((wgc.WGFMU_MEASURE_CURRENT_RANGE_1MA))
-                    elif comp_val == "10ma":
+                    elif comp_val == "10ma" or comp_val == "6005":
                         compliance_data.append((wgc.WGFMU_MEASURE_CURRENT_RANGE_10MA))
                     else:
                         print(f"UNKNOWN COMPLIANCE VALUE INPUT: {comp_val}\n##########################\n")
