@@ -5,7 +5,7 @@ import time
 
 parameters = {
     "Name": "Evan", #These parameters must be changed by the experimenter for better data filing and collection and determines where your data is stored and what it's name is stored as
-    "Sample_ID": "Batch3_F5_TPTE16",
+    "Sample_ID": "Batch5_Sample5_F5_TPTE33",
 
     "Waveform Format": "Reram",  # Loads a waveform format (Used in unfinished Waveform creation GUI disregard for now)
     "Waveform": "ReRam_Program_Evan", #Set this to Load a Waveform into the Editor
@@ -16,9 +16,9 @@ parameters = {
     "pts_per_meas" : 1, #Used during WGFMU waveform generation
     
     "Form_Test": {
-        "SMU_Pair": [1, 2],  #This is the list of the two SMUs well use in this order [measured, ground] 
+        "SMU_Pair": [4, 2],  #This is the list of the two SMUs well use in this order [measured, ground] 
         "Max_Resistance": 10000, #This is the maximum resistance device we will consider to be formed (Usually set by the complaiance current and the current voltage during forming)
-        "Max_Voltage": 7, #Max Voltage We can use before turning off the test
+        "Max_Voltage": 10, #Max Voltage We can use before turning off the test
         "IComp": 1e-3, #Compliance limit used during the forming operation
         "Dynamic_Check": True, #This sets the operation to do a staircase sweep instead of holding a continuous voltage value
         "D_StartV": 1, #Starting voltage for the sweep (only used if we are doing a dynamic sweep)
@@ -33,7 +33,7 @@ parameters = {
 }
 
 # Initialize Unified B1500 (includes parameter validation)
-b1500 = B1500(unit_label = 'A', parameters=parameters)
+b1500 = B1500(unit_label = 'Old', parameters=parameters)
 
 
 didItForm = b1500.smu.Forming(b1500, "Form_Test")
