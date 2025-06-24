@@ -79,7 +79,7 @@ def ReRamRetention(self,
                 ExponentCounter += 1
             
             b1500.connection.write(f"DV {Grounded_SMU}, 0, 0, {ReadCompliance}")
-            self.smu_meas_sample(b1500, Measured_SMU, vmeas = ReadVoltage, icomp = ReadCompliance, interval = Interval, disconnect_after = False)
+            data = self.smu_meas_sample(b1500, SMU_Pair[0], vmeas = ReadVoltage, icomp = ReadCompliance, interval = Interval, disconnect_after = False)
 
             data = b1500.data_clean(b1500, data, b1500.test_info.parameters, NoSave = True)
             Current = data.get(f"SMU{SMU_Pair[0]}_Current", None)

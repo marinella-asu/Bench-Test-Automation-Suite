@@ -1,0 +1,8 @@
+start,0.0,0.0,0.0,,
+placeholder_comp,1e-5,0.0,0.0,100ua,
+placeholder,5.89e-5,0.0,0.0,,
+placeholder,5.9e-5,0.1,0.0,,
+placeholder,6.89e-5,0.1,0.0,,
+placeholder_meas,0.000119,0.1,0.0,,
+placeholder,180.0,0.1,0.0,,
+placeholder,180.1,0.0,0.0,,

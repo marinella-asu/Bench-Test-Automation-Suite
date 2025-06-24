@@ -1,0 +1,159 @@
+# Saved on 2025-06-24T11:47:35.088401
+# Name: Evan
+# Sample_ID: Batch3_F5_TPTE33
+# Waveform Format: Reram
+# Waveform: ReRam_Program_Evan
+# VDD WGFMU: 1
+# VSS WGFMU: 2
+# trd: 0.0001
+# pts_per_meas: 1
+# Short_Check_Test:
+#   SMU_Pair: [1, 2]
+#   Max_Resistance: 200
+#   Max_Voltage: 0.1
+#   IComp: 0.1
+#   Dynamic_Check: True
+#   D_StartV: 0.1
+#   D_Step: 1
+#   D_Wait: 10
+#   SaveData: True
+# Form_Test:
+#   SMU_Pair: [1, 2]
+#   Max_Resistance: 10000
+#   Max_Voltage: 7
+#   IComp: 0.001
+#   Dynamic_Check: True
+#   D_StartV: 1
+#   D_Step: 0.1
+#   D_Wait: 2
+#   Reset_Voltage: -1.5
+#   Reset_Compliance: 0.1
+#   SaveData: True
+# Switch_Test:
+#   SMU_Pair: [1, 2]
+#   num_loops: 5
+#   Read_Voltage: 0.1
+#   Pos_Voltage: 2.3
+#   Neg_Voltage: -1
+#   Min_MemWindow: 1.1
+#   Reset_Voltage_Step: 0.1
+#   ICompSet: 0.001
+#   ICompReset: 0.1
+#   ICompRead: 0.1
+#   SaveData: True
+# Program:
+#   min_gtarget: 0.0004
+#   max_gtarget: 0.003
+#   num_level: 6
+#   num: 20
+#   num_reads: 10
+#   v_rd: 0.1
+#   v_prg: 0.7
+#   v_rst: -0.7
+#   v_prg_max: 10
+#   v_countmax: 1000
+#   v_count: 0
+#   goffset: 1e-06
+#   ProgramTargetOffset: 1e-05
+#   read_waveform: ReRam_Read_Evan
+#   program_waveform: ReRam_Program_Evan
+#   RTN_waveform: Retention_10Min
+# SmartProgram:
+#   min_gtarget: 0.0004
+#   max_gtarget: 0.003
+#   num_level: 6
+#   num: 20
+#   num_reads: 10
+#   v_rd: 0.1
+#   v_prg: 1
+#   v_rst: -1
+#   v_prg_max: 2.3
+#   v_countmax: 1000
+#   v_count: 0
+#   goffset: 1e-06
+#   ProgramTargetOffset: 1e-05
+#   read_waveform: ReRam_Read_Evan
+#   program_waveform: ReRam_Program_Evan
+#   RTN_waveform: ReRam_RTN_Evan
+#   boundary_super_coarse: 0.0001
+#   boundary_coarse: 5e-05
+#   boundary_fine: 5e-05
+#   boundary_ultra_fine: 5e-07
+#   super_coarse_step: 0.0001
+#   coarse_step: 2.5e-05
+#   fine_step: 2.5e-05
+#   ultra_fine_step: 5e-07
+#   ultra_ultra_fine_step: 5e-07
+#   use_super_coarse: False
+#   use_fine: False
+#   use_ultra_fine: False
+#   use_ultra_ultra_fine: False
+# Retention:
+#   SMU_Pair: [1, 2]
+#   ReadVoltage: 0.1
+#   ReadCompliance: 0.1
+#   Interval: 0.01
+#   Duration: 180
+#   SampleRate: 2
+#   SaveData: True
+Time (s),Conductance_Target_1 (S)
+1.4400000000e-04,3.9859238314e-04
+1.0001440000e+00,4.0374659875e-04
+2.0001440000e+00,3.9953785745e-04
+3.0001440000e+00,4.0113507566e-04
+4.0001440000e+00,4.0352577344e-04
+5.0001440000e+00,4.0125043597e-04
+6.0001440000e+00,3.9932863729e-04
+7.0001440000e+00,4.0105122025e-04
+8.0001440000e+00,3.9010323235e-04
+9.0001440000e+00,3.9880655095e-04
+1.0000144000e+01,3.9333779569e-04
+1.1000144000e+01,3.9344282413e-04
+1.2000144000e+01,3.9567235945e-04
+1.3000144000e+01,3.9740571083e-04
+1.4000144000e+01,3.9541548176e-04
+1.5000144000e+01,3.9458678657e-04
+1.6000144000e+01,3.9623970224e-04
+1.7000144000e+01,3.9447000745e-04
+1.8000144000e+01,3.9631151594e-04
+1.9000144000e+01,3.9828672016e-04
+2.0000144000e+01,4.0170434659e-04
+2.1000144000e+01,4.0416747652e-04
+2.2000144000e+01,4.0631530283e-04
+2.3000144000e+01,4.0094520955e-04
+2.4000144000e+01,4.0187485865e-04
+2.5000144000e+01,4.0637678467e-04
+2.6000144000e+01,4.0636859922e-04
+2.7000144000e+01,4.0581569920e-04
+2.8000144000e+01,4.0946699301e-04
+2.9000144000e+01,4.1041064833e-04
+3.0000144000e+01,4.0798913687e-04
+3.1000144000e+01,3.9424805436e-04
+3.2000144000e+01,4.0153725422e-04
+3.3000144000e+01,4.0108658141e-04
+3.4000144000e+01,4.0435716073e-04
+3.5000144000e+01,4.0330327465e-04
+3.6000144000e+01,4.0490613173e-04
+3.7000144000e+01,4.0114438889e-04
+3.8000144000e+01,4.0002458263e-04
+3.9000144000e+01,4.0228540456e-04
+4.0000144000e+01,4.0023340262e-04
+4.1000144000e+01,4.0186339902e-04
+4.2000144000e+01,3.9906171878e-04
+4.3000144000e+01,4.0158291085e-04
+4.4000144000e+01,4.0971794078e-04
+4.5000144000e+01,4.1018276534e-04
+4.6000144000e+01,4.0776518290e-04
+4.7000144000e+01,4.0605504182e-04
+4.8000144000e+01,4.0517908928e-04
+4.9000144000e+01,4.0467315557e-04
+5.0000144000e+01,4.0514729335e-04
+5.1000144000e+01,4.0454830014e-04
+5.2000144000e+01,4.0428578359e-04
+5.3000144000e+01,4.0281127440e-04
+5.4000144000e+01,4.0497241571e-04
+5.5000144000e+01,4.0270369936e-04
+5.6000144000e+01,4.0273793275e-04
+5.7000144000e+01,4.0155053284e-04
+5.8000144000e+01,4.0248232835e-04
+5.9000144000e+01,4.0421353333e-04
