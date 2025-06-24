@@ -6,7 +6,7 @@ import time
 # Define experiment parameters
 parameters = {
     "Name": "Evan", #These parameters must be changed by the experimenter for better data filing and collection and determines where your data is stored and what it's name is stored as
-    "Sample_ID": "Batch3_F5_TPTE37",
+    "Sample_ID": "Batch3_F5_TPTE33",
 
     "Waveform Format": "Reram",  # Loads a waveform format (Used in unfinished Waveform creation GUI disregard for now)
     "Waveform": "ReRam_Program_Evan", #Set this to Load a Waveform into the Editor
@@ -59,28 +59,28 @@ parameters = {
     },
 
     "Program": {
-        "min_gtarget": .00095,   # ‑‑ Lowest Conductance Target
-        "max_gtarget": .001,  # ‑‑ Highest Conductance Target
-        "num_level":   2,        # ‑‑ How many levels in between those levels do we want to program to
+        "min_gtarget": .0002,   # ‑‑ Lowest Conductance Target
+        "max_gtarget": .0013,  # ‑‑ Highest Conductance Target
+        "num_level":   12,        # ‑‑ How many levels in between those levels do we want to program to
         "num":         20,       # ‑‑ How many times we hold a programming voltage before increasing intensity
         "num_reads":   10,       # ‑‑ How many times we read the device during validation to verify we did program the correct state
         "v_rd":        0.1,      # ‑‑ Read Voltage during validation and RTN
-        "v_prg":       1,      # ‑‑ Initial Set Voltage for programming
-        "v_rst":       -1.5,      # -- Initial Reset Voltage for programming
+        "v_prg":       .7,      # ‑‑ Initial Set Voltage for programming
+        "v_rst":       -.8,      # -- Initial Reset Voltage for programming
         "v_prg_max":   10,      # ‑‑ Maximum value used for Set operation
         "v_countmax":  1000,       # ‑‑ Maximum times we'll try to program and validate before giving up on the state 
         "v_count":     0,        # initial state of counter for how many times we'll try to program and validate before giving up on the state 
-        "goffset":     1e-6, #Validation Range +- offset 
-        "ProgramTargetOffset": 10e-6, #+- offset around our programmed states (How close do we need to be to our set state to be considered programmed and begin trying to validate the state)
+        "goffset":     5e-6, #Validation Range +- offset 
+        "ProgramTargetOffset": 5e-6, #+- offset around our programmed states (How close do we need to be to our set state to be considered programmed and begin trying to validate the state)
         "read_waveform": "ReRam_Read_Evan", #Waveform used during read operation
         "program_waveform": "ReRam_Program_Evan", #Waveform used during Program operation
-        "RTN_waveform":     "ReRam_RTN_Evan", #Waveform used during RTN read operation
+        "RTN_waveform":     "Retention_10Min", #Waveform used during RTN read operation
     },
 
     "SmartProgram": {
-        "min_gtarget": .00095,   # ‑‑ Lowest Conductance Target
-        "max_gtarget": .001,  # ‑‑ Highest Conductance Target
-        "num_level":   2,        # ‑‑ How many levels in between those levels do we want to program to
+        "min_gtarget": .000200,   # ‑‑ Lowest Conductance Target
+        "max_gtarget": .001300,  # ‑‑ Highest Conductance Target
+        "num_level":   6,        # ‑‑ How many levels in between those levels do we want to program to
         "num":         20,       # ‑‑ How many times we hold a programming voltage before increasing intensity
         "num_reads":   10,       # ‑‑ How many times we read the device during validation to verify we did program the correct state
         "v_rd":        0.1,      # ‑‑ Read Voltage during validation and RTN
@@ -89,7 +89,7 @@ parameters = {
         "v_prg_max":   2.3,      # ‑‑ Maximum value used for Set operation
         "v_countmax":  1000,       # ‑‑ Maximum times we'll try to program and validate before giving up on the state 
         "v_count":     0,        # initial state of counter for how many times we'll try to program and validate before giving up on the state 
-        "goffset":     1e-6, #Validation Range +- offset 
+        "goffset":     5e-6, #Validation Range +- offset 
         "ProgramTargetOffset": 10e-6, #+- offset around our programmed states (How close do we need to be to our set state to be considered programmed and begin trying to validate the state)
         "read_waveform": "ReRam_Read_Evan", #Waveform used during read operation
         "program_waveform": "ReRam_Program_Evan", #Waveform used during Program operation
@@ -114,8 +114,8 @@ parameters = {
         "ReadVoltage": .1,
         "ReadCompliance": 100e-3,
         "Interval": 10e-3,
-        "Duration": 60,
-        "SampleRate": 60,
+        "Duration": 180,
+        "SampleRate": 2,
         "SaveData": True,
     }
 
@@ -141,7 +141,7 @@ print(f"Did we successfully Program?: {didweProgram}")
 # didweSmartProgram = b1500.wgfmu.SmartProgramAndRTN(b1500, "SmartProgram")
 # print(f"Did we successfully Program?: {didweSmartProgram}")
 
-# didweRetention = b1500.ReRamRetention(b1500, "Retention")
+# didweRetention = b1500.smu.ReRamRetention(b1500, "Retention")
 # print(f"Did we successfully Retention?: {didweRetention}")
 
 b1500.connection.write("CL") #Used to make absolutely sure the B1500 and WGFMU are set to a default safe state upon program exit

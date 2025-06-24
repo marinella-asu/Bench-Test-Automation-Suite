@@ -131,7 +131,6 @@ def ProgramAndRTN(self,
             if succeed:
                 print("SUCCESS")
                 v_count = 1
-                
             
             # Long-term RTN Read
             results2 = self.rd_pulses_1terminal(
@@ -140,7 +139,7 @@ def ProgramAndRTN(self,
                 rd_period=100e-3, meas_pts=3001, meas_interval=1e-3, meas_averaging=-1,
                 t_rise=100e-9, v_rd=v_rd, v_off=0.0,
                 range_rd=self.get_wgfmu_range_for_gtarget(gtarget),
-                offset_times=False, wgfmu_open_first=True, wgfmu_close_after=True, alternate_waveform = RTN_waveform)
+                offset_times=False, wgfmu_open_first=True, wgfmu_close_after=True, alternate_waveform = "ReRam_RTN_Evan")
     
             times, currents, conductances = results2
             conductances = conductances[:-1]
@@ -165,6 +164,47 @@ def ProgramAndRTN(self,
             plt.show()
             plt.close()
             
+            
+            # # Long-term RTN Read
+            # results2 = self.rd_pulses_1terminal(
+            #     b1500, ch_vdd=b1500.test_info.ch_vdd, ch_vss=b1500.test_info.ch_vss,
+            #     num_reads=1, t_start=1e-6, t_settle=3e-6, t_read=10e-3,
+            #     rd_period=100e-3, meas_pts=180001, meas_interval=1e-3, meas_averaging=-1,
+            #     t_rise=100e-9, v_rd=v_rd, v_off=0.0,
+            #     range_rd=self.get_wgfmu_range_for_gtarget(gtarget),
+            #     offset_times=False, wgfmu_open_first=True, wgfmu_close_after=True, alternate_waveform = RTN_waveform)
+    
+            # times, currents, conductances = results2
+            # conductances = conductances[:-1]
+            # times = times[:-1]
+            # # print(times)
+            # # print("currents")
+            # # print(currents)
+            # # print("conductances")
+            # # print(conductances)
+            
+            # if i == 0:
+            #     base_times = times  # Save time once
+            #     i = i + 1
+            # all_conductances.append(conductances)
+    
+            # plt.figure()
+            # plt.plot(times, conductances*1e6)
+            # plt.xlabel("Time (s)")
+            # plt.ylabel("Conductance (uS)")
+            # plt.title(f"RTN Readout for Target {gtarget*1e6:.2f}uS")
+            # plt.grid(True)
+            # plt.show()
+            # plt.close()
+            
+            # b1500.smu.ReRamRetention(b1500,
+            #                 SMU_Pair=[1, 2],
+            #                 ReadVoltage = .1,
+            #                 ReadCompliance = 100e-3,
+            #                 Interval = 10e-3,
+            #                 Duration = 180, #Length of Retention Test in Seconds
+            #                 SampleRate = 2, #Measurements per Minute (Linear)
+            #                 SaveData = True)
             
        
         # Stack everything: times as first column, each conductance as additional columns
