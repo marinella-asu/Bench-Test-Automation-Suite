@@ -45,14 +45,14 @@ parameters = {
     },
 
     "Switch_Test": {
-        "SMU_Pair": [1,2], #This is the list of the two SMUs well use in this order [measured, ground] 
+        "SMU_Pair": [1, 2], #This is the list of the two SMUs well use in this order [measured, ground] 
         "num_loops": 5, #This is how many set-reset loops the code will run through
         "Read_Voltage": .1, #This is votlage the device will  be read at for testing the conductance level and comparing our memory windows
-        "Pos_Voltage": 2.3, #This is the maximum positive voltage that the device will be swept to during the set operation
-        "Neg_Voltage": -1, #This is the starting voltage the device will be swept to during reset (This increments if our memory window is not large enough >MinMemWindow)
+        "Pos_Voltage": 2, #This is the maximum positive voltage that the device will be swept to during the set operation
+        "Neg_Voltage": -2, #This is the starting voltage the device will be swept to during reset (This increments if our memory window is not large enough >MinMemWindow)
         "Min_MemWindow": 1.1,
         "Reset_Voltage_Step": .1, #This is the step by which the reset voltage will decrease by every loop where we do not see a substantial change between set and reset
-        "ICompSet": 1e-3, #This is the compliance used during the set operation sweep
+        "ICompSet": 3e-3, #This is the compliance used during the set operation sweep
         "ICompReset": 100e-3, #This is the compliance used during the reset operation sweep
         "ICompRead": 100e-3, #This is the compliance limit used during the read of the device
         "SaveData": True, #Save the data to csv?
@@ -132,11 +132,11 @@ b1500 = B1500(unit_label = 'A', parameters=parameters)
 # didItForm = b1500.smu.Forming(b1500, "Form_Test")
 # print(f"We Formed the Device?: {didItForm}")
 
-# didweSwitch = b1500.smu.Switch_Test(b1500, "Switch_Test")
-# print(f"Did we successfully switch through all the loops?: {didweSwitch}")
+didweSwitch = b1500.smu.Switch_Test(b1500, "Switch_Test")
+print(f"Did we successfully switch through all the loops?: {didweSwitch}")
 
-didweProgram = b1500.wgfmu.ProgramAndRTN(b1500, "Program")
-print(f"Did we successfully Program?: {didweProgram}")
+# didweProgram = b1500.wgfmu.ProgramAndRTN(b1500, "Program")
+# print(f"Did we successfully Program?: {didweProgram}")
 
 # didweSmartProgram = b1500.wgfmu.SmartProgramAndRTN(b1500, "SmartProgram")
 # print(f"Did we successfully Program?: {didweSmartProgram}")
