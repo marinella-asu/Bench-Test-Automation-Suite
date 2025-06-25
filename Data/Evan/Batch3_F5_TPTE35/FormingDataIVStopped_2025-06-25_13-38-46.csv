@@ -1,0 +1,70 @@
+# Saved on 2025-06-25T13:38:46.791698
+# Name: Evan
+# Sample_ID: Batch3_F5_TPTE35
+# Waveform Format: Reram
+# Waveform: ReRam_Program_Evan
+# VDD WGFMU: 1
+# VSS WGFMU: 2
+# trd: 0.0001
+# pts_per_meas: 1
+# Short_Check_Test:
+#   SMU_Pair: [1, 2]
+#   Max_Resistance: 200
+#   Max_Voltage: 0.1
+#   IComp: 0.1
+#   Dynamic_Check: True
+#   D_StartV: 0.1
+#   D_Step: 1
+#   D_Wait: 10
+#   SaveData: True
+# Form_Test:
+#   SMU_Pair: [1, 2]
+#   Max_Resistance: 10000
+#   Max_Voltage: 7
+#   IComp: 0.001
+#   Dynamic_Check: True
+#   D_StartV: 1
+#   D_Step: 0.1
+#   D_Wait: 2
+#   Reset_Voltage: -10
+#   Reset_Compliance: 0.01
+#   SaveData: True
+# Switch_Test:
+#   SMU_Pair: [1, 2]
+#   num_loops: 5
+#   Read_Voltage: 0.1
+#   Pos_Voltage: 2.3
+#   Neg_Voltage: -1
+#   Min_MemWindow: 1.1
+#   Reset_Voltage_Step: 0.1
+#   ICompSet: 0.001
+#   ICompReset: 0.1
+#   ICompRead: 0.1
+#   SaveData: True
+# Program:
+#   min_gtarget: 0.0004
+#   max_gtarget: 0.0013
+#   num_level: 10
+#   num: 20
+#   num_reads: 10
+#   v_rd: 0.1
+#   v_prg: 0.9
+#   v_rst: -0.8
+#   v_prg_max: 10
+#   v_countmax: 1000
+#   v_count: 0
+#   goffset: 5e-06
+#   ProgramTargetOffset: 5e-06
+#   read_waveform: ReRam_Read_Evan
+#   program_waveform: ReRam_Program_Evan
+#   RTN_waveform: Retention_10Min
+# Retention:
+#   SMU_Pair: [1, 2]
+#   ReadVoltage: 0.1
+#   ReadCompliance: 0.1
+#   Interval: 0.01
+#   Duration: 180
+#   SampleRate: 2
+#   SaveData: True
+Voltage (V),Current (A)
+1.0000000000e+00,1.0110000000e-13

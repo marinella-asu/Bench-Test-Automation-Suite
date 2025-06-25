@@ -6,7 +6,7 @@ import time
 # Define experiment parameters
 parameters = {
     "Name": "Evan", #These parameters must be changed by the experimenter for better data filing and collection and determines where your data is stored and what it's name is stored as
-    "Sample_ID": "Batch3_F5_TPTE33",
+    "Sample_ID": "Batch3_F5_TPTE37",
 
     "Waveform Format": "Reram",  # Loads a waveform format (Used in unfinished Waveform creation GUI disregard for now)
     "Waveform": "ReRam_Program_Evan", #Set this to Load a Waveform into the Editor
@@ -38,8 +38,8 @@ parameters = {
         "D_StartV": 1, #Starting voltage for the sweep (only used if we are doing a dynamic sweep)
         "D_Step": .1, #Voltage step increased after D_Wait seconds (only used if we are doing a dynamic sweep)
         "D_Wait": 2, #Wait time per each voltage in seconds (only used if we are doing a dynamic sweep)
-        "Reset_Voltage": -1.5, #This is the reset voltage used after the device is successfully formed so we can start future tests with each device in its reset state
-        "Reset_Compliance": 100e-3, #This is the compliance used during the reset sweep after forming
+        "Reset_Voltage": -10, #This is the reset voltage used after the device is successfully formed so we can start future tests with each device in its reset state
+        "Reset_Compliance": 10e-3, #This is the compliance used during the reset sweep after forming
         "SaveData": True,  #Save the data to csv?
 
     },
@@ -59,37 +59,37 @@ parameters = {
     },
 
     "Program": {
-        "min_gtarget": .0002,   # ‑‑ Lowest Conductance Target
+        "min_gtarget": .0004,   # ‑‑ Lowest Conductance Target
         "max_gtarget": .0013,  # ‑‑ Highest Conductance Target
-        "num_level":   12,        # ‑‑ How many levels in between those levels do we want to program to
+        "num_level":   10,        # ‑‑ How many levels in between those levels do we want to program to
         "num":         20,       # ‑‑ How many times we hold a programming voltage before increasing intensity
         "num_reads":   10,       # ‑‑ How many times we read the device during validation to verify we did program the correct state
         "v_rd":        0.1,      # ‑‑ Read Voltage during validation and RTN
         "v_prg":       .7,      # ‑‑ Initial Set Voltage for programming
-        "v_rst":       -.8,      # -- Initial Reset Voltage for programming
+        "v_rst":       -.6,      # -- Initial Reset Voltage for programming
         "v_prg_max":   10,      # ‑‑ Maximum value used for Set operation
         "v_countmax":  1000,       # ‑‑ Maximum times we'll try to program and validate before giving up on the state 
         "v_count":     0,        # initial state of counter for how many times we'll try to program and validate before giving up on the state 
-        "goffset":     5e-6, #Validation Range +- offset 
-        "ProgramTargetOffset": 5e-6, #+- offset around our programmed states (How close do we need to be to our set state to be considered programmed and begin trying to validate the state)
+        "goffset":     10e-6, #Validation Range +- offset 
+        "ProgramTargetOffset": 10e-6, #+- offset around our programmed states (How close do we need to be to our set state to be considered programmed and begin trying to validate the state)
         "read_waveform": "ReRam_Read_Evan", #Waveform used during read operation
         "program_waveform": "ReRam_Program_Evan", #Waveform used during Program operation
         "RTN_waveform":     "Retention_10Min", #Waveform used during RTN read operation
     },
 
     "SmartProgram": {
-        "min_gtarget": .000200,   # ‑‑ Lowest Conductance Target
+        "min_gtarget": .000400,   # ‑‑ Lowest Conductance Target
         "max_gtarget": .001300,  # ‑‑ Highest Conductance Target
-        "num_level":   6,        # ‑‑ How many levels in between those levels do we want to program to
+        "num_level":   10,        # ‑‑ How many levels in between those levels do we want to program to
         "num":         20,       # ‑‑ How many times we hold a programming voltage before increasing intensity
         "num_reads":   10,       # ‑‑ How many times we read the device during validation to verify we did program the correct state
         "v_rd":        0.1,      # ‑‑ Read Voltage during validation and RTN
-        "v_prg":       1,      # ‑‑ Initial Set Voltage for programming
-        "v_rst":       -1,      # -- Initial Reset Voltage for programming
+        "v_prg":       .7,      # ‑‑ Initial Set Voltage for programming
+        "v_rst":       -.6,      # -- Initial Reset Voltage for programming
         "v_prg_max":   2.3,      # ‑‑ Maximum value used for Set operation
         "v_countmax":  1000,       # ‑‑ Maximum times we'll try to program and validate before giving up on the state 
         "v_count":     0,        # initial state of counter for how many times we'll try to program and validate before giving up on the state 
-        "goffset":     5e-6, #Validation Range +- offset 
+        "goffset":     10e-6, #Validation Range +- offset 
         "ProgramTargetOffset": 10e-6, #+- offset around our programmed states (How close do we need to be to our set state to be considered programmed and begin trying to validate the state)
         "read_waveform": "ReRam_Read_Evan", #Waveform used during read operation
         "program_waveform": "ReRam_Program_Evan", #Waveform used during Program operation
@@ -103,10 +103,10 @@ parameters = {
         "fine_step" : 25e-6,
         "ultra_fine_step" : 0.5e-6,
         "ultra_ultra_fine_step" : 0.5e-6,
-        "use_super_coarse" : False,
-        "use_fine" : False,
-        "use_ultra_fine" : False,
-        "use_ultra_ultra_fine" : False,
+        "use_super_coarse" : True,
+        "use_fine" : True,
+        "use_ultra_fine" : True,
+        "use_ultra_ultra_fine" : True,
     },
 
     "Retention":{
@@ -134,7 +134,7 @@ b1500 = B1500(unit_label = 'A', parameters=parameters)
 
 # didweSwitch = b1500.smu.Switch_Test(b1500, "Switch_Test")
 # print(f"Did we successfully switch through all the loops?: {didweSwitch}")
-
+# 
 didweProgram = b1500.wgfmu.ProgramAndRTN(b1500, "Program")
 print(f"Did we successfully Program?: {didweProgram}")
 

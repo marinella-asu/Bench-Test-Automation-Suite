@@ -15,7 +15,7 @@ def ProgramAndRTN(self,
                   v_rd=0.1,
                   v_prg=1.0,
                   v_rst = -1,
-                  vstep=0.1,
+                  vstep=0.025,
                   v_prg_max=9.8,
                   v_count=0,
                   v_countmax=40,
@@ -80,6 +80,7 @@ def ProgramAndRTN(self,
         self.wg.WGFMU_clear()
         
         all_conductances = []  # To store each conductance column
+        all_cond_retention = [] # To store each 10 min retention
         
         gtargets = np.linspace(min_gtarget, max_gtarget, num=num_level)
         print("###################################")
@@ -132,7 +133,7 @@ def ProgramAndRTN(self,
                 print("SUCCESS")
                 v_count = 1
             
-            # Long-term RTN Read
+            # 3sec RTN Read
             results2 = self.rd_pulses_1terminal(
                 b1500, ch_vdd=b1500.test_info.ch_vdd, ch_vss=b1500.test_info.ch_vss,
                 num_reads=1, t_start=1e-6, t_settle=3e-6, t_read=10e-3,
@@ -165,37 +166,37 @@ def ProgramAndRTN(self,
             plt.close()
             
             
-            # # Long-term RTN Read
-            # results2 = self.rd_pulses_1terminal(
-            #     b1500, ch_vdd=b1500.test_info.ch_vdd, ch_vss=b1500.test_info.ch_vss,
-            #     num_reads=1, t_start=1e-6, t_settle=3e-6, t_read=10e-3,
-            #     rd_period=100e-3, meas_pts=180001, meas_interval=1e-3, meas_averaging=-1,
-            #     t_rise=100e-9, v_rd=v_rd, v_off=0.0,
-            #     range_rd=self.get_wgfmu_range_for_gtarget(gtarget),
-            #     offset_times=False, wgfmu_open_first=True, wgfmu_close_after=True, alternate_waveform = RTN_waveform)
+            # Long-term Retention Read
+            results2 = self.rd_pulses_1terminal(
+                b1500, ch_vdd=b1500.test_info.ch_vdd, ch_vss=b1500.test_info.ch_vss,
+                num_reads=1, t_start=1e-6, t_settle=3e-6, t_read=10e-3,
+                rd_period=100e-3, meas_pts=180001, meas_interval=1e-3, meas_averaging=-1,
+                t_rise=100e-9, v_rd=v_rd, v_off=0.0,
+                range_rd=self.get_wgfmu_range_for_gtarget(gtarget),
+                offset_times=False, wgfmu_open_first=True, wgfmu_close_after=True, alternate_waveform = RTN_waveform)
     
-            # times, currents, conductances = results2
-            # conductances = conductances[:-1]
-            # times = times[:-1]
-            # # print(times)
-            # # print("currents")
-            # # print(currents)
-            # # print("conductances")
-            # # print(conductances)
+            times, currents, conductances = results2
+            conductances = conductances[:-1]
+            times = times[:-1]
+            # print(times)
+            # print("currents")
+            # print(currents)
+            # print("conductances")
+            # print(conductances)
             
-            # if i == 0:
-            #     base_times = times  # Save time once
-            #     i = i + 1
-            # all_conductances.append(conductances)
+            if i == 1:
+                base_time_retention = times  # Save time once
+                # i = i + 1
+            all_cond_retention.append(conductances)
     
-            # plt.figure()
-            # plt.plot(times, conductances*1e6)
-            # plt.xlabel("Time (s)")
-            # plt.ylabel("Conductance (uS)")
-            # plt.title(f"RTN Readout for Target {gtarget*1e6:.2f}uS")
-            # plt.grid(True)
-            # plt.show()
-            # plt.close()
+            plt.figure()
+            plt.plot(times, conductances*1e6)
+            plt.xlabel("Time (s)")
+            plt.ylabel("Conductance (uS)")
+            plt.title(f"RTN Readout for Target {gtarget*1e6:.2f}uS")
+            plt.grid(True)
+            plt.show()
+            plt.close()
             
             # b1500.smu.ReRamRetention(b1500,
             #                 SMU_Pair=[1, 2],
@@ -209,6 +210,7 @@ def ProgramAndRTN(self,
        
         # Stack everything: times as first column, each conductance as additional columns
         final_array = np.column_stack([base_times] + all_conductances)
+        final_array_retention = np.column_stack([base_time_retention] + all_cond_retention)
         
         # Plot all conductance traces
         plt.figure()
@@ -225,18 +227,21 @@ def ProgramAndRTN(self,
         plt.show()
         plt.close()
         # Generate headers
-        headers = ["Time (s)"] + [f"Conductance_Target_{i+1} (S)" for i in range(len(all_conductances))]
+        headers = ["Time (s)"] + [f"Conductance_Target_{gtargets[i]*1e6:.2f} uS" for i in range(len(all_conductances))]
 
         b1500.save_numpy_to_csv(b1500, final_array, filename="SuccessCompleteProgramRTNOutput", headers = headers)
+        b1500.save_numpy_to_csv(b1500, final_array_retention, filename="SuccessCompleteProgramRetentionOutput", headers = headers)
         return True
     except KeyboardInterrupt as e:
          b1500.connection.write("CL")
          b1500.wgfmu.wg.WGFMU_clear()
          if i > 0:
             final_array = np.column_stack([base_times] + all_conductances)
+            final_array_retention = np.column_stack([base_time_retention] + all_cond_retention)
             # Generate headers
             headers = ["Time (s)"] + [f"Conductance_Target_{i+1} (S)" for i in range(len(all_conductances))]
             b1500.save_numpy_to_csv(b1500, final_array, filename="StoppedProgramRTNOutput", headers = headers)
+            b1500.save_numpy_to_csv(b1500, final_array_retention, filename="StoppedProgramRetentionOutput", headers = headers)
          print(e)
 
 def get_wgfmu_range_for_gtarget(self, gtarget):

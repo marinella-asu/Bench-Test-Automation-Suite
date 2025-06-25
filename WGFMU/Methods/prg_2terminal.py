@@ -53,7 +53,7 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_rst = -1, v_pr
     
     done = False #Done flag
     # print(read_waveform)
-    results = self.rd_pulses_Resalat(b1500, alternate_waveform = read_waveform, v_rd = v_rd)
+    results = self.rd_pulses_Resalat(b1500, alternate_waveform = read_waveform, v_rd = v_rd, ranging_rd = ranging_rd)
     # print(f'{results[2]}')
     g_cur = sum(results[2])/len(results[2])
     # print(f"conductance: {g_cur}")
@@ -132,7 +132,7 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_rst = -1, v_pr
         if ((abs(v_prg)>v_prg_max)):
             print("The device is unprogrammable - Bias Condition Is Over {v_prg_max} V")
         elif (done):
-            #print( f"The program operation succeeds with conductance of {g_cur*1e6:.4g} uS \t at bias condition {v_prg:.4g} V \t ({currents*1e6:.3g} uA)")
-            print( f"The program operation succeeds with conductance of {g_cur*1e9:.4g} nS \t at bias condition {v_prg:.4g} V \t  ({current*1e6:.3g} uA)")
+            # print( f"The program operation succeeds with conductance of {g_cur*1e6:.4g} uS \t at bias condition {v_prg:.4g} V \t ({currents*1e6:.3g} uA)")
+            print( f"The program operation succeeds with conductance of {g_cur*1e6:.4g} uS \t at bias condition {v_prg:.4g} V \t  ({current*1e6:.3g} uA)")
         
     return ( times , currents , g_cur, conductances )

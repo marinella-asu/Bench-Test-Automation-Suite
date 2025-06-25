@@ -1,12 +1,12 @@
 import time
-def rd_pulses_Resalat(self, b1500, alternate_waveform = None, num_reads=1, offset_times = False, v_rd = None):
+def rd_pulses_Resalat(self, b1500, alternate_waveform = None, num_reads=1, offset_times = False, v_rd = None, ranging_rd = 6002):
     # clear existing pattern data
     self.wg.WGFMU_clear()
     
     if v_rd is not None:
         # print("Overriding Read Value")
         # Create waveform on WGFMU
-        self.create_waveform(b1500, alternate_waveform = alternate_waveform, OverrideValue = [("Read", v_rd)])
+        self.create_waveform(b1500, alternate_waveform = alternate_waveform, OverrideValue = [("Read", v_rd), ("comp", ranging_rd)])
         
         # Run pattern
         t_run = time.perf_counter()
