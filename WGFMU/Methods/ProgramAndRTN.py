@@ -198,6 +198,11 @@ def ProgramAndRTN(self,
             plt.show()
             plt.close()
             
+            self.wg.WGFMU_setForceDelay(b1500.test_info.ch_vdd, 100)
+            self.wg.WGFMU_setForceDelay(b1500.test_info.ch_vss, 100)
+            self.wg.WGFMU_clear()
+            self.wg.WGFMU_closeSession()
+            b1500.connection.write("*rst; status:preset; *cls")
             # b1500.smu.ReRamRetention(b1500,
             #                 SMU_Pair=[1, 2],
             #                 ReadVoltage = .1,
