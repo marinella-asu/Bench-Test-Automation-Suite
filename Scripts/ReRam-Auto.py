@@ -6,13 +6,13 @@ import time
 # Define experiment parameters
 parameters = {
     "Name": "Evan", #These parameters must be changed by the experimenter for better data filing and collection and determines where your data is stored and what it's name is stored as
-    "Sample_ID": "Batch3_F5_TPTE37",
+    "Sample_ID": "Batch3_F5_TPTE08",
 
     "Waveform Format": "Reram",  # Loads a waveform format (Used in unfinished Waveform creation GUI disregard for now)
     "Waveform": "ReRam_Program_Evan", #Set this to Load a Waveform into the Editor
-    "Waveform Editor": "ask",   #Uncomment this to load the waveform editor on program runtime
-    "VDD WGFMU": 1, #This sets what channel of the WGFMU the VDD waveform is applied to
-    "VSS WGFMU": 2, #This sets what channel of the WGFMU the VSS waveform is applied to
+    # "Waveform Editor": "ask",   #Uncomment this to load the waveform editor on program runtime
+    "VDD WGFMU": 2, #This sets what channel of the WGFMU the VDD waveform is applied to
+    "VSS WGFMU": 1, #This sets what channel of the WGFMU the VSS waveform is applied to
     "trd": 1e-4, #Used during WGFMU waveform generation
     "pts_per_meas" : 1, #Used during WGFMU waveform generation
     
@@ -65,8 +65,8 @@ parameters = {
         "num":         20,       # ‑‑ How many times we hold a programming voltage before increasing intensity
         "num_reads":   10,       # ‑‑ How many times we read the device during validation to verify we did program the correct state
         "v_rd":        0.1,      # ‑‑ Read Voltage during validation and RTN
-        "v_prg":       .7,      # ‑‑ Initial Set Voltage for programming
-        "v_rst":       -.6,      # -- Initial Reset Voltage for programming
+        "v_prg":       1.5,      # ‑‑ Initial Set Voltage for programming
+        "v_rst":       -3,      # -- Initial Reset Voltage for programming
         "v_prg_max":   10,      # ‑‑ Maximum value used for Set operation
         "v_countmax":  1000,       # ‑‑ Maximum times we'll try to program and validate before giving up on the state 
         "v_count":     0,        # initial state of counter for how many times we'll try to program and validate before giving up on the state 
@@ -77,37 +77,37 @@ parameters = {
         "RTN_waveform":     "Retention_10Min", #Waveform used during RTN read operation
     },
 
-    "SmartProgram": {
-        "min_gtarget": .000400,   # ‑‑ Lowest Conductance Target
-        "max_gtarget": .001300,  # ‑‑ Highest Conductance Target
-        "num_level":   10,        # ‑‑ How many levels in between those levels do we want to program to
-        "num":         20,       # ‑‑ How many times we hold a programming voltage before increasing intensity
-        "num_reads":   10,       # ‑‑ How many times we read the device during validation to verify we did program the correct state
-        "v_rd":        0.1,      # ‑‑ Read Voltage during validation and RTN
-        "v_prg":       .7,      # ‑‑ Initial Set Voltage for programming
-        "v_rst":       -.6,      # -- Initial Reset Voltage for programming
-        "v_prg_max":   2.3,      # ‑‑ Maximum value used for Set operation
-        "v_countmax":  1000,       # ‑‑ Maximum times we'll try to program and validate before giving up on the state 
-        "v_count":     0,        # initial state of counter for how many times we'll try to program and validate before giving up on the state 
-        "goffset":     10e-6, #Validation Range +- offset 
-        "ProgramTargetOffset": 10e-6, #+- offset around our programmed states (How close do we need to be to our set state to be considered programmed and begin trying to validate the state)
-        "read_waveform": "ReRam_Read_Evan", #Waveform used during read operation
-        "program_waveform": "ReRam_Program_Evan", #Waveform used during Program operation
-        "RTN_waveform":     "ReRam_RTN_Evan", #Waveform used during RTN read operation
-        "boundary_super_coarse" : 100e-6,
-        "boundary_coarse" : 50e-6,
-        "boundary_fine" : 50e-6,
-        "boundary_ultra_fine" : 0.5e-6,
-        "super_coarse_step" : 100e-6,
-        "coarse_step" : 25e-6,
-        "fine_step" : 25e-6,
-        "ultra_fine_step" : 0.5e-6,
-        "ultra_ultra_fine_step" : 0.5e-6,
-        "use_super_coarse" : True,
-        "use_fine" : True,
-        "use_ultra_fine" : True,
-        "use_ultra_ultra_fine" : True,
-    },
+    # "SmartProgram": {
+    #     "min_gtarget": .000400,   # ‑‑ Lowest Conductance Target
+    #     "max_gtarget": .001300,  # ‑‑ Highest Conductance Target
+    #     "num_level":   10,        # ‑‑ How many levels in between those levels do we want to program to
+    #     "num":         20,       # ‑‑ How many times we hold a programming voltage before increasing intensity
+    #     "num_reads":   10,       # ‑‑ How many times we read the device during validation to verify we did program the correct state
+    #     "v_rd":        0.1,      # ‑‑ Read Voltage during validation and RTN
+    #     "v_prg":       .7,      # ‑‑ Initial Set Voltage for programming
+    #     "v_rst":       -.6,      # -- Initial Reset Voltage for programming
+    #     "v_prg_max":   2.3,      # ‑‑ Maximum value used for Set operation
+    #     "v_countmax":  1000,       # ‑‑ Maximum times we'll try to program and validate before giving up on the state 
+    #     "v_count":     0,        # initial state of counter for how many times we'll try to program and validate before giving up on the state 
+    #     "goffset":     10e-6, #Validation Range +- offset 
+    #     "ProgramTargetOffset": 10e-6, #+- offset around our programmed states (How close do we need to be to our set state to be considered programmed and begin trying to validate the state)
+    #     "read_waveform": "ReRam_Read_Evan", #Waveform used during read operation
+    #     "program_waveform": "ReRam_Program_Evan", #Waveform used during Program operation
+    #     "RTN_waveform":     "ReRam_RTN_Evan", #Waveform used during RTN read operation
+    #     "boundary_super_coarse" : 100e-6,
+    #     "boundary_coarse" : 50e-6,
+    #     "boundary_fine" : 50e-6,
+    #     "boundary_ultra_fine" : 0.5e-6,
+    #     "super_coarse_step" : 100e-6,
+    #     "coarse_step" : 25e-6,
+    #     "fine_step" : 25e-6,
+    #     "ultra_fine_step" : 0.5e-6,
+    #     "ultra_ultra_fine_step" : 0.5e-6,
+    #     "use_super_coarse" : True,
+    #     "use_fine" : True,
+    #     "use_ultra_fine" : True,
+    #     "use_ultra_ultra_fine" : True,
+    # },
 
     "Retention":{
         "SMU_Pair": [1,2],
@@ -120,9 +120,9 @@ parameters = {
     },
 
     "ILOVEDATA":{
-        "v_start": .3,
-        "v_max": 2.5,
-        "v_step": .1,
+        "v_start": -3,
+        "v_max": 3,
+        "v_step": 1,
         "pulses_per_voltage": 100,
         "derivative_interval": 10,
         "v_rd": 0.1,
@@ -158,8 +158,8 @@ b1500 = B1500(unit_label = 'A', parameters=parameters)
 didweData = b1500.wgfmu.Conductance_Tracking(b1500, "ILOVEDATA")
 print(didweData)
 
-# b1500.connection.write("CL") #Used to make absolutely sure the B1500 and WGFMU are set to a default safe state upon program exit
-# b1500.wgfmu.wg.WGFMU_clear()
+b1500.connection.write("CL") #Used to make absolutely sure the B1500 and WGFMU are set to a default safe state upon program exit
+b1500.wgfmu.wg.WGFMU_clear()
 
 
 

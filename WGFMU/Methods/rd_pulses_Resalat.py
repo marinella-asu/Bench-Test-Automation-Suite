@@ -6,7 +6,7 @@ def rd_pulses_Resalat(self, b1500, alternate_waveform = None, num_reads=1, offse
     if v_rd is not None:
         # print("Overriding Read Value")
         # Create waveform on WGFMU
-        self.create_waveform(b1500, alternate_waveform = alternate_waveform, OverrideValue = [("Read", v_rd), ("comp", ranging_rd)])
+        self.create_waveform(b1500, alternate_waveform = alternate_waveform, num_copies = num_reads, OverrideValue = [("Read", v_rd), ("comp", ranging_rd)])
         
         # Run pattern
         t_run = time.perf_counter()

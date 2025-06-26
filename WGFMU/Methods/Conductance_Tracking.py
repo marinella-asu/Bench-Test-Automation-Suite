@@ -65,7 +65,7 @@ def Conductance_Tracking(self,
         print(f"\n--- Voltage: {v:.2f} V ---")
 
         # Read initial conductance
-        g_before = np.mean(self.rd_pulses_Resalat(b1500, alternate_waveform=read_waveform, v_rd=v_rd, ranging_rd=self.get_wgfmu_range_for_gtarget(g_after))[2])
+        g_before = np.mean(self.rd_pulses_Resalat(b1500, alternate_waveform=read_waveform, v_rd=v_rd, num_reads = 10, ranging_rd=self.get_wgfmu_range_for_gtarget(g_after))[2])
         conductances = []
 
         for i in range(pulses_per_voltage):
@@ -77,9 +77,9 @@ def Conductance_Tracking(self,
 
             # Read result
             times, vals = self.read_results(b1500.test_info.ch_vdd)
-            g_cur = vals[-1] / v_rd
+            g_cur = np.mean(self.rd_pulses_Resalat(b1500, alternate_waveform=read_waveform, v_rd=v_rd, num_reads = 50, ranging_rd=self.get_wgfmu_range_for_gtarget(g_after))[2])
             conductances.append(g_cur)
-
+            print(f"conductance: {g_cur}")
         g_after = conductances[-1]
         derivs = np.gradient(conductances, derivative_interval)
 

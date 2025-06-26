@@ -15,7 +15,7 @@ def ProgramAndRTN(self,
                   v_rd=0.1,
                   v_prg=1.0,
                   v_rst = -1,
-                  vstep=0.025,
+                  vstep=0.1,
                   v_prg_max=9.8,
                   v_count=0,
                   v_countmax=40,
@@ -98,10 +98,10 @@ def ProgramAndRTN(self,
                     t_prg=100e-9, ranging_rd=self.get_wgfmu_range_for_gtarget(gtarget),
                     gmin=gmin, gmax=gmax, pulses_per_voltage=num, read_waveform = read_waveform, program_waveform = program_waveform)
     
-                self.wg.WGFMU_setForceDelay(b1500.test_info.ch_vdd, 100)
-                self.wg.WGFMU_setForceDelay(b1500.test_info.ch_vss, 100)
-                self.wg.WGFMU_clear()
-                self.wg.WGFMU_closeSession()
+                # self.wg.WGFMU_setForceDelay(b1500.test_info.ch_vdd, 100)
+                # self.wg.WGFMU_setForceDelay(b1500.test_info.ch_vss, 100)
+                # self.wg.WGFMU_clear()
+                # self.wg.WGFMU_closeSession()
     
                 results = self.rd_pulses_1terminal(
                     b1500, ch_vdd=b1500.test_info.ch_vdd, ch_vss=b1500.test_info.ch_vss,
@@ -198,11 +198,11 @@ def ProgramAndRTN(self,
             plt.show()
             plt.close()
             
-            self.wg.WGFMU_setForceDelay(b1500.test_info.ch_vdd, 100)
-            self.wg.WGFMU_setForceDelay(b1500.test_info.ch_vss, 100)
-            self.wg.WGFMU_clear()
-            self.wg.WGFMU_closeSession()
-            b1500.connection.write("*rst; status:preset; *cls")
+            # self.wg.WGFMU_setForceDelay(b1500.test_info.ch_vdd, 100)
+            # self.wg.WGFMU_setForceDelay(b1500.test_info.ch_vss, 100)
+            # self.wg.WGFMU_clear()
+            # self.wg.WGFMU_closeSession()
+            # b1500.connection.write("*rst; status:preset; *cls")
             # b1500.smu.ReRamRetention(b1500,
             #                 SMU_Pair=[1, 2],
             #                 ReadVoltage = .1,
