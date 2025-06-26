@@ -10,7 +10,7 @@ parameters = {
 
     "Waveform Format": "Reram",  # Loads a waveform format (Used in unfinished Waveform creation GUI disregard for now)
     "Waveform": "ReRam_Program_Evan", #Set this to Load a Waveform into the Editor
-    # "Waveform Editor": "ask",   #Uncomment this to load the waveform editor on program runtime
+    "Waveform Editor": "ask",   #Uncomment this to load the waveform editor on program runtime
     "VDD WGFMU": 1, #This sets what channel of the WGFMU the VDD waveform is applied to
     "VSS WGFMU": 2, #This sets what channel of the WGFMU the VSS waveform is applied to
     "trd": 1e-4, #Used during WGFMU waveform generation
@@ -117,8 +117,19 @@ parameters = {
         "Duration": 180,
         "SampleRate": 2,
         "SaveData": True,
-    }
+    },
 
+    "ILOVEDATA":{
+        "v_start": .3,
+        "v_max": 2.5,
+        "v_step": .1,
+        "pulses_per_voltage": 100,
+        "derivative_interval": 10,
+        "v_rd": 0.1,
+        "ranging_rd": 6002,
+        "read_waveform": "ReRam_Read_Evan",
+        "program_waveform": "ReRam_Program_Evan"
+    }
 
     
 }
@@ -132,8 +143,8 @@ b1500 = B1500(unit_label = 'A', parameters=parameters)
 # didItForm = b1500.smu.Forming(b1500, "Form_Test")
 # print(f"We Formed the Device?: {didItForm}")
 
-didweSwitch = b1500.smu.Switch_Test(b1500, "Switch_Test")
-print(f"Did we successfully switch through all the loops?: {didweSwitch}")
+# didweSwitch = b1500.smu.Switch_Test(b1500, "Switch_Test")
+# print(f"Did we successfully switch through all the loops?: {didweSwitch}")
 
 # didweProgram = b1500.wgfmu.ProgramAndRTN(b1500, "Program")
 # print(f"Did we successfully Program?: {didweProgram}")
@@ -144,8 +155,11 @@ print(f"Did we successfully switch through all the loops?: {didweSwitch}")
 # didweRetention = b1500.smu.ReRamRetention(b1500, "Retention")
 # print(f"Did we successfully Retention?: {didweRetention}")
 
-b1500.connection.write("CL") #Used to make absolutely sure the B1500 and WGFMU are set to a default safe state upon program exit
-b1500.wgfmu.wg.WGFMU_clear()
+didweData = b1500.wgfmu.Conductance_Tracking(b1500, "ILOVEDATA")
+print(didweData)
+
+# b1500.connection.write("CL") #Used to make absolutely sure the B1500 and WGFMU are set to a default safe state upon program exit
+# b1500.wgfmu.wg.WGFMU_clear()
 
 
 
