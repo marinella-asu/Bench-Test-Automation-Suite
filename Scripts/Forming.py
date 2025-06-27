@@ -24,8 +24,8 @@ parameters = {
         "D_StartV": 1, #Starting voltage for the sweep (only used if we are doing a dynamic sweep)
         "D_Step": .1, #Voltage step increased after D_Wait seconds (only used if we are doing a dynamic sweep)
         "D_Wait": 2, #Wait time per each voltage in seconds (only used if we are doing a dynamic sweep)
-        "Reset_Voltage": 1, #This is the reset voltage used after the device is successfully formed so we can start future tests with each device in its reset state
-        "Reset_Compliance": 1e-3, #This is the compliance used during the reset sweep after forming
+        "Reset_Voltage": -2, #This is the reset voltage used after the device is successfully formed so we can start future tests with each device in its reset state
+        "Reset_Compliance": 100e-3, #This is the compliance used during the reset sweep after forming
         "SaveData": True,  #Save the data to csv?
 
     },

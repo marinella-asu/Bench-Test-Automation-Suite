@@ -250,11 +250,11 @@ def ProgramAndRTN(self,
          print(e)
 
 def get_wgfmu_range_for_gtarget(self, gtarget):
-    if gtarget >= 100e-6:
+    if gtarget >= 1000e-6:
         return self.wgc.WGFMU_MEASURE_CURRENT_RANGE_1MA
-    elif gtarget >= 2e-6:
+    elif gtarget >= 100e-6:
         return self.wgc.WGFMU_MEASURE_CURRENT_RANGE_100UA
-    elif gtarget >= 0.1e-6:  
+    elif gtarget >= 10e-6:  
         return self.wgc.WGFMU_MEASURE_CURRENT_RANGE_1UA
     else:
         raise ValueError(f"Target conductance {gtarget} S is too small for reliable WGFMU measurement.")
