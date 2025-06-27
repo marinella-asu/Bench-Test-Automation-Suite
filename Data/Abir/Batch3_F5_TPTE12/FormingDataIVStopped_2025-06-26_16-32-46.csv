@@ -1,0 +1,23 @@
+# Saved on 2025-06-26T16:32:46.511919
+# Name: Abir
+# Sample_ID: Batch3_F5_TPTE12
+# Waveform Format: Reram
+# Waveform: ReRam_Program_Evan
+# VDD WGFMU: 2
+# VSS WGFMU: 1
+# trd: 0.0001
+# pts_per_meas: 1
+# Form_Test:
+#   SMU_Pair: [2, 1]
+#   Max_Resistance: 10000
+#   Max_Voltage: 7
+#   IComp: 0.001
+#   Dynamic_Check: True
+#   D_StartV: 1
+#   D_Step: 0.1
+#   D_Wait: 2
+#   Reset_Voltage: 0.1
+#   Reset_Compliance: 0.1
+#   SaveData: True
+Voltage (V),Current (A)
+1.0000000000e+00,8.7501000000e-04

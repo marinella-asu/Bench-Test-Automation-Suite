@@ -5,14 +5,14 @@ import time
 
 # Define experiment parameters
 parameters = {
-    "Name": "Evan", #These parameters must be changed by the experimenter for better data filing and collection and determines where your data is stored and what it's name is stored as
-    "Sample_ID": "Batch3_F5_TPTE08",
+    "Name": "Abir", #These parameters must be changed by the experimenter for better data filing and collection and determines where your data is stored and what it's name is stored as
+    "Sample_ID": "Batch3_F5_TPTE13",
 
     "Waveform Format": "Reram",  # Loads a waveform format (Used in unfinished Waveform creation GUI disregard for now)
     "Waveform": "ReRam_Program_Evan", #Set this to Load a Waveform into the Editor
     # "Waveform Editor": "ask",   #Uncomment this to load the waveform editor on program runtime
-    "VDD WGFMU": 2, #This sets what channel of the WGFMU the VDD waveform is applied to
-    "VSS WGFMU": 1, #This sets what channel of the WGFMU the VSS waveform is applied to
+    "VDD WGFMU": 1, #This sets what channel of the WGFMU the VDD waveform is applied to
+    "VSS WGFMU": 2, #This sets what channel of the WGFMU the VSS waveform is applied to
     "trd": 1e-4, #Used during WGFMU waveform generation
     "pts_per_meas" : 1, #Used during WGFMU waveform generation
     
@@ -38,8 +38,8 @@ parameters = {
         "D_StartV": 1, #Starting voltage for the sweep (only used if we are doing a dynamic sweep)
         "D_Step": .1, #Voltage step increased after D_Wait seconds (only used if we are doing a dynamic sweep)
         "D_Wait": 2, #Wait time per each voltage in seconds (only used if we are doing a dynamic sweep)
-        "Reset_Voltage": -10, #This is the reset voltage used after the device is successfully formed so we can start future tests with each device in its reset state
-        "Reset_Compliance": 10e-3, #This is the compliance used during the reset sweep after forming
+        "Reset_Voltage": .1, #This is the reset voltage used after the device is successfully formed so we can start future tests with each device in its reset state
+        "Reset_Compliance": 100e-3, #This is the compliance used during the reset sweep after forming
         "SaveData": True,  #Save the data to csv?
 
     },
@@ -59,19 +59,19 @@ parameters = {
     },
 
     "Program": {
-        "min_gtarget": .0004,   # ‑‑ Lowest Conductance Target
+        "min_gtarget": .000400,   # ‑‑ Lowest Conductance Target
         "max_gtarget": .0013,  # ‑‑ Highest Conductance Target
         "num_level":   10,        # ‑‑ How many levels in between those levels do we want to program to
-        "num":         20,       # ‑‑ How many times we hold a programming voltage before increasing intensity
+        "num":         10,       # ‑‑ How many times we hold a programming voltage before increasing intensity
         "num_reads":   10,       # ‑‑ How many times we read the device during validation to verify we did program the correct state
         "v_rd":        0.1,      # ‑‑ Read Voltage during validation and RTN
-        "v_prg":       1.5,      # ‑‑ Initial Set Voltage for programming
-        "v_rst":       -3,      # -- Initial Reset Voltage for programming
+        "v_prg":       .7,      # ‑‑ Initial Set Voltage for programming
+        "v_rst":       -.6,      # -- Initial Reset Voltage for programming
         "v_prg_max":   10,      # ‑‑ Maximum value used for Set operation
         "v_countmax":  1000,       # ‑‑ Maximum times we'll try to program and validate before giving up on the state 
         "v_count":     0,        # initial state of counter for how many times we'll try to program and validate before giving up on the state 
-        "goffset":     10e-6, #Validation Range +- offset 
-        "ProgramTargetOffset": 10e-6, #+- offset around our programmed states (How close do we need to be to our set state to be considered programmed and begin trying to validate the state)
+        "goffset":     15e-6, #Validation Range +- offset 
+        "ProgramTargetOffset": 15e-6, #+- offset around our programmed states (How close do we need to be to our set state to be considered programmed and begin trying to validate the state)
         "read_waveform": "ReRam_Read_Evan", #Waveform used during read operation
         "program_waveform": "ReRam_Program_Evan", #Waveform used during Program operation
         "RTN_waveform":     "Retention_10Min", #Waveform used during RTN read operation
@@ -120,7 +120,7 @@ parameters = {
     },
 
     "ILOVEDATA":{
-        "v_start": -3,
+        "v_start": .5,
         "v_max": 3,
         "v_step": 1,
         "pulses_per_voltage": 100,
@@ -146,8 +146,8 @@ b1500 = B1500(unit_label = 'A', parameters=parameters)
 # didweSwitch = b1500.smu.Switch_Test(b1500, "Switch_Test")
 # print(f"Did we successfully switch through all the loops?: {didweSwitch}")
 
-# didweProgram = b1500.wgfmu.ProgramAndRTN(b1500, "Program")
-# print(f"Did we successfully Program?: {didweProgram}")
+didweProgram = b1500.wgfmu.ProgramAndRTN(b1500, "Program")
+print(f"Did we successfully Program?: {didweProgram}")
 
 # didweSmartProgram = b1500.wgfmu.SmartProgramAndRTN(b1500, "SmartProgram")
 # print(f"Did we successfully Program?: {didweSmartProgram}")
@@ -155,8 +155,8 @@ b1500 = B1500(unit_label = 'A', parameters=parameters)
 # didweRetention = b1500.smu.ReRamRetention(b1500, "Retention")
 # print(f"Did we successfully Retention?: {didweRetention}")
 
-didweData = b1500.wgfmu.Conductance_Tracking(b1500, "ILOVEDATA")
-print(didweData)
+# didweData = b1500.wgfmu.Conductance_Tracking(b1500, "ILOVEDATA")
+# print(didweData)
 
 b1500.connection.write("CL") #Used to make absolutely sure the B1500 and WGFMU are set to a default safe state upon program exit
 b1500.wgfmu.wg.WGFMU_clear()

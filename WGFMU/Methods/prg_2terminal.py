@@ -76,7 +76,7 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_rst = -1, v_pr
         rst_done = ( g_cur <= gmax )
         done = np.all(set_done & rst_done)
         
-        print(f"value of conductance {g_cur:.4g}, SET {set_done}, RESET {rst_done}, and DONE {done} Trying to reach between: ({gmin}, ({gmax})\nProgramming Voltage of: {v_prg}V\n")
+        
         if set_done==False:
             v_prg_set = v_prg_set + vstep_increment
             v_prg = v_prg_set
@@ -85,7 +85,7 @@ def prg_2terminal(self, b1500=None, param_name=None, v_prg = 1, v_rst = -1, v_pr
             v_prg_rst = v_prg_rst - vstep_increment
             v_prg = v_prg_rst
             operation = "RESET"
-        
+        print(f"value of conductance {g_cur:.4g}, SET {set_done}, RESET {rst_done}, and DONE {done} Trying to reach between: ({gmin}, ({gmax})\nProgramming Voltage of: {v_prg}V\n")
         
         # clear existing pattern data
         self.wg.WGFMU_clear()
