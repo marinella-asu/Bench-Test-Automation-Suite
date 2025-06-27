@@ -6,7 +6,7 @@ import time
 # Define experiment parameters
 parameters = {
     "Name": "Evan", #These parameters must be changed by the experimenter for better data filing and collection and determines where your data is stored and what it's name is stored as
-    "Sample_ID": "Batch3_F5_TPTE43",
+    "Sample_ID": "Batch3_F5_TPTE44",
 
     "Waveform Format": "Reram",  # Loads a waveform format (Used in unfinished Waveform creation GUI disregard for now)
     "Waveform": "ReRam_Program_Evan", #Set this to Load a Waveform into the Editor
@@ -65,8 +65,8 @@ parameters = {
         "num":         10,       # ‑‑ How many times we hold a programming voltage before increasing intensity
         "num_reads":   10,       # ‑‑ How many times we read the device during validation to verify we did program the correct state
         "v_rd":        0.1,      # ‑‑ Read Voltage during validation and RTN
-        "v_prg":       1.3,      # ‑‑ Initial Set Voltage for programming
-        "v_rst":       -1.3,      # -- Initial Reset Voltage for programming
+        "v_prg":       .7,      # ‑‑ Initial Set Voltage for programming
+        "v_rst":       -.6,      # -- Initial Reset Voltage for programming
         "v_prg_max":   10,      # ‑‑ Maximum value used for Set operation
         "v_countmax":  1000,       # ‑‑ Maximum times we'll try to program and validate before giving up on the state 
         "v_count":     0,        # initial state of counter for how many times we'll try to program and validate before giving up on the state 
