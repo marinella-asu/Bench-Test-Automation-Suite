@@ -6,7 +6,7 @@ import time
 # Define experiment parameters
 parameters = {
     "Name": "Evan", #These parameters must be changed by the experimenter for better data filing and collection and determines where your data is stored and what it's name is stored as
-    "Sample_ID": "Batch3_F5_TPTE46",
+    "Sample_ID": "Batch5_Sample5_F5_TPTE09",
 
     "Waveform Format": "Reram",  # Loads a waveform format (Used in unfinished Waveform creation GUI disregard for now)
     "Waveform": "ReRam_Program_Evan", #Set this to Load a Waveform into the Editor
@@ -30,7 +30,7 @@ parameters = {
     
     #Check For a Short between two SMUS this is a contact measurement
     "Form_Test": {
-        "SMU_Pair": [1, 2],  #This is the list of the two SMUs well use in this order [measured, ground] 
+        "SMU_Pair": [2, 1],  #This is the list of the two SMUs well use in this order [measured, ground] 
         "Max_Resistance": 10000, #This is the maximum resistance device we will consider to be formed (Usually set by the complaiance current and the current voltage during forming)
         "Max_Voltage": 7, #Max Voltage We can use before turning off the test
         "IComp": 1e-3, #Compliance limit used during the forming operation
@@ -38,76 +38,76 @@ parameters = {
         "D_StartV": 1, #Starting voltage for the sweep (only used if we are doing a dynamic sweep)
         "D_Step": .1, #Voltage step increased after D_Wait seconds (only used if we are doing a dynamic sweep)
         "D_Wait": 2, #Wait time per each voltage in seconds (only used if we are doing a dynamic sweep)
-        "Reset_Voltage": .1, #This is the reset voltage used after the device is successfully formed so we can start future tests with each device in its reset state
+        "Reset_Voltage": -1.5, #This is the reset voltage used after the device is successfully formed so we can start future tests with each device in its reset state
         "Reset_Compliance": 100e-3, #This is the compliance used during the reset sweep after forming
         "SaveData": True,  #Save the data to csv?
 
     },
 
     "Switch_Test": {
-        "SMU_Pair": [1, 2], #This is the list of the two SMUs well use in this order [measured, ground] 
-        "num_loops": 5, #This is how many set-reset loops the code will run through
+        "SMU_Pair": [2, 1], #This is the list of the two SMUs well use in this order [measured, ground] 
+        "num_loops": 2, #This is how many set-reset loops the code will run through
         "Read_Voltage": .1, #This is votlage the device will  be read at for testing the conductance level and comparing our memory windows
-        "Pos_Voltage": 2, #This is the maximum positive voltage that the device will be swept to during the set operation
+        "Pos_Voltage": 1, #This is the maximum positive voltage that the device will be swept to during the set operation
         "Neg_Voltage": -2, #This is the starting voltage the device will be swept to during reset (This increments if our memory window is not large enough >MinMemWindow)
-        "Min_MemWindow": 1.1,
+        "Min_MemWindow": 0.5,
         "Reset_Voltage_Step": .1, #This is the step by which the reset voltage will decrease by every loop where we do not see a substantial change between set and reset
-        "ICompSet": 3e-3, #This is the compliance used during the set operation sweep
+        "ICompSet": 20e-4, #This is the compliance used during the set operation sweep
         "ICompReset": 100e-3, #This is the compliance used during the reset operation sweep
         "ICompRead": 100e-3, #This is the compliance limit used during the read of the device
         "SaveData": True, #Save the data to csv?
     },
 
     "Program": {
-        "min_gtarget": .000400,   # ‑‑ Lowest Conductance Target
-        "max_gtarget": .0013,  # ‑‑ Highest Conductance Target
-        "num_level":   10,        # ‑‑ How many levels in between those levels do we want to program to
+        "min_gtarget": .0004,   # ‑‑ Lowest Conductance Target
+        "max_gtarget": .0008,  # ‑‑ Highest Conductance Target
+        "num_level":   5,        # ‑‑ How many levels in between those levels do we want to program to
         "num":         10,       # ‑‑ How many times we hold a programming voltage before increasing intensity
         "num_reads":   10,       # ‑‑ How many times we read the device during validation to verify we did program the correct state
         "v_rd":        0.1,      # ‑‑ Read Voltage during validation and RTN
-        "v_prg":       .7,      # ‑‑ Initial Set Voltage for programming
-        "v_rst":       -.6,      # -- Initial Reset Voltage for programming
+        "v_prg":       .3,      # ‑‑ Initial Set Voltage for programming
+        "v_rst":       -.3,      # -- Initial Reset Voltage for programming
         "v_prg_max":   10,      # ‑‑ Maximum value used for Set operation
         "v_countmax":  1000,       # ‑‑ Maximum times we'll try to program and validate before giving up on the state 
         "v_count":     0,        # initial state of counter for how many times we'll try to program and validate before giving up on the state 
-        "goffset":     15e-6, #Validation Range +- offset 
-        "ProgramTargetOffset": 15e-6, #+- offset around our programmed states (How close do we need to be to our set state to be considered programmed and begin trying to validate the state)
+        "goffset":     5e-6, #Validation Range +- offset 
+        "ProgramTargetOffset": 5e-6, #+- offset around our programmed states (How close do we need to be to our set state to be considered programmed and begin trying to validate the state)
         "read_waveform": "ReRam_Read_Evan", #Waveform used during read operation
         "program_waveform": "ReRam_Program_Evan", #Waveform used during Program operation
         "RTN_waveform":     "Retention_10Min", #Waveform used during RTN read operation
     },
 
-    # "SmartProgram": {
-    #     "min_gtarget": .000400,   # ‑‑ Lowest Conductance Target
-    #     "max_gtarget": .001300,  # ‑‑ Highest Conductance Target
-    #     "num_level":   10,        # ‑‑ How many levels in between those levels do we want to program to
-    #     "num":         20,       # ‑‑ How many times we hold a programming voltage before increasing intensity
-    #     "num_reads":   10,       # ‑‑ How many times we read the device during validation to verify we did program the correct state
-    #     "v_rd":        0.1,      # ‑‑ Read Voltage during validation and RTN
-    #     "v_prg":       .7,      # ‑‑ Initial Set Voltage for programming
-    #     "v_rst":       -.6,      # -- Initial Reset Voltage for programming
-    #     "v_prg_max":   2.3,      # ‑‑ Maximum value used for Set operation
-    #     "v_countmax":  1000,       # ‑‑ Maximum times we'll try to program and validate before giving up on the state 
-    #     "v_count":     0,        # initial state of counter for how many times we'll try to program and validate before giving up on the state 
-    #     "goffset":     10e-6, #Validation Range +- offset 
-    #     "ProgramTargetOffset": 10e-6, #+- offset around our programmed states (How close do we need to be to our set state to be considered programmed and begin trying to validate the state)
-    #     "read_waveform": "ReRam_Read_Evan", #Waveform used during read operation
-    #     "program_waveform": "ReRam_Program_Evan", #Waveform used during Program operation
-    #     "RTN_waveform":     "ReRam_RTN_Evan", #Waveform used during RTN read operation
-    #     "boundary_super_coarse" : 100e-6,
-    #     "boundary_coarse" : 50e-6,
-    #     "boundary_fine" : 50e-6,
-    #     "boundary_ultra_fine" : 0.5e-6,
-    #     "super_coarse_step" : 100e-6,
-    #     "coarse_step" : 25e-6,
-    #     "fine_step" : 25e-6,
-    #     "ultra_fine_step" : 0.5e-6,
-    #     "ultra_ultra_fine_step" : 0.5e-6,
-    #     "use_super_coarse" : True,
-    #     "use_fine" : True,
-    #     "use_ultra_fine" : True,
-    #     "use_ultra_ultra_fine" : True,
-    # },
+    "SmartProgram": {
+        "min_gtarget": .000400,   # ‑‑ Lowest Conductance Target
+        "max_gtarget": .001300,  # ‑‑ Highest Conductance Target
+        "num_level":   10,        # ‑‑ How many levels in between those levels do we want to program to
+        "num":         20,       # ‑‑ How many times we hold a programming voltage before increasing intensity
+        "num_reads":   10,       # ‑‑ How many times we read the device during validation to verify we did program the correct state
+        "v_rd":        0.1,      # ‑‑ Read Voltage during validation and RTN
+        "v_prg":       .7,      # ‑‑ Initial Set Voltage for programming
+        "v_rst":       -.6,      # -- Initial Reset Voltage for programming
+        "v_prg_max":   5,      # ‑‑ Maximum value used for Set operation
+        "v_countmax":  1000,       # ‑‑ Maximum times we'll try to program and validate before giving up on the state 
+        "v_count":     0,        # initial state of counter for how many times we'll try to program and validate before giving up on the state 
+        "goffset":     10e-6, #Validation Range +- offset 
+        "ProgramTargetOffset": 10e-6, #+- offset around our programmed states (How close do we need to be to our set state to be considered programmed and begin trying to validate the state)
+        "read_waveform": "ReRam_Read_Evan", #Waveform used during read operation
+        "program_waveform": "ReRam_Program_Evan", #Waveform used during Program operation
+        "RTN_waveform":     "ReRam_RTN_Evan", #Waveform used during RTN read operation
+        "boundary_super_coarse" : 100e-6,
+        "boundary_coarse" : 50e-6,
+        "boundary_fine" : 50e-6,
+        "boundary_ultra_fine" : 0.5e-6,
+        "super_coarse_step" : 100e-6,
+        "coarse_step" : 25e-6,
+        "fine_step" : 25e-6,
+        "ultra_fine_step" : 0.5e-6,
+        "ultra_ultra_fine_step" : 0.5e-6,
+        "use_super_coarse" : True,
+        "use_fine" : True,
+        "use_ultra_fine" : True,
+        "use_ultra_ultra_fine" : True,
+    },
 
     "Retention":{
         "SMU_Pair": [1,2],

@@ -15,7 +15,7 @@ def ProgramAndRTN(self,
                   v_rd=0.1,
                   v_prg=1.0,
                   v_rst = -1,
-                  vstep=0.1,
+                  vstep=0.025,
                   v_prg_max=9.8,
                   v_count=0,
                   v_countmax=40,
@@ -170,7 +170,7 @@ def ProgramAndRTN(self,
             results2 = self.rd_pulses_1terminal(
                 b1500, ch_vdd=b1500.test_info.ch_vdd, ch_vss=b1500.test_info.ch_vss,
                 num_reads=1, t_start=1e-6, t_settle=3e-6, t_read=10e-3,
-                rd_period=100e-3, meas_pts=180001, meas_interval=1e-3, meas_averaging=-1,
+                rd_period=100e-3, meas_pts=180, meas_interval=1, meas_averaging=-1,
                 t_rise=100e-9, v_rd=v_rd, v_off=0.0,
                 range_rd=self.get_wgfmu_range_for_gtarget(gtarget),
                 offset_times=False, wgfmu_open_first=True, wgfmu_close_after=True, alternate_waveform = RTN_waveform)
@@ -252,9 +252,11 @@ def ProgramAndRTN(self,
 def get_wgfmu_range_for_gtarget(self, gtarget):
     if gtarget >= 1000e-6:
         return self.wgc.WGFMU_MEASURE_CURRENT_RANGE_1MA
-    elif gtarget >= 100e-6:
+    if gtarget >= 100e-6:
         return self.wgc.WGFMU_MEASURE_CURRENT_RANGE_100UA
-    elif gtarget >= 10e-6:  
+    elif gtarget >= 1e-6:
+        return self.wgc.WGFMU_MEASURE_CURRENT_RANGE_10UA
+    elif gtarget >= 0.1e-6:  
         return self.wgc.WGFMU_MEASURE_CURRENT_RANGE_1UA
     else:
         raise ValueError(f"Target conductance {gtarget} S is too small for reliable WGFMU measurement.")

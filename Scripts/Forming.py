@@ -5,7 +5,7 @@ import time
 
 parameters = {
     "Name": "Evan", #These parameters must be changed by the experimenter for better data filing and collection and determines where your data is stored and what it's name is stored as
-    "Sample_ID": "Batch3_F5_TPTE14",
+    "Sample_ID": "Batch5_Sample5_F5_TPTE09",
 
     "Waveform Format": "Reram",  # Loads a waveform format (Used in unfinished Waveform creation GUI disregard for now)
     "Waveform": "ReRam_Program_Evan", #Set this to Load a Waveform into the Editor
@@ -24,7 +24,7 @@ parameters = {
         "D_StartV": 1, #Starting voltage for the sweep (only used if we are doing a dynamic sweep)
         "D_Step": .1, #Voltage step increased after D_Wait seconds (only used if we are doing a dynamic sweep)
         "D_Wait": 2, #Wait time per each voltage in seconds (only used if we are doing a dynamic sweep)
-        "Reset_Voltage": -2, #This is the reset voltage used after the device is successfully formed so we can start future tests with each device in its reset state
+        "Reset_Voltage": .1,#This is the reset voltage used after the device is successfully formed so we can start future tests with each device in its reset state
         "Reset_Compliance": 100e-3, #This is the compliance used during the reset sweep after forming
         "SaveData": True,  #Save the data to csv?
 

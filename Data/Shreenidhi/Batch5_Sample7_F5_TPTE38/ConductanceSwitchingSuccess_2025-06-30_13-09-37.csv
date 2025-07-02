@@ -1,0 +1,81 @@
+# Saved on 2025-06-30T13:09:37.069540
+# Name: Shreenidhi
+# Sample_ID: Batch5_Sample7_F5_TPTE38
+# Waveform Format: Reram
+# Waveform: ReRam_Program_Evan
+# VDD WGFMU: 1
+# VSS WGFMU: 2
+# trd: 0.0001
+# pts_per_meas: 1
+# Short_Check_Test:
+#   SMU_Pair: [1, 2]
+#   Max_Resistance: 200
+#   Max_Voltage: 0.1
+#   IComp: 0.1
+#   Dynamic_Check: True
+#   D_StartV: 0.1
+#   D_Step: 1
+#   D_Wait: 10
+#   SaveData: True
+# Form_Test:
+#   SMU_Pair: [1, 2]
+#   Max_Resistance: 10000
+#   Max_Voltage: 7
+#   IComp: 0.001
+#   Dynamic_Check: True
+#   D_StartV: 1
+#   D_Step: 0.1
+#   D_Wait: 2
+#   Reset_Voltage: 0.1
+#   Reset_Compliance: 0.1
+#   SaveData: True
+# Switch_Test:
+#   SMU_Pair: [1, 2]
+#   num_loops: 2
+#   Read_Voltage: 0.1
+#   Pos_Voltage: 1.2
+#   Neg_Voltage: -1.2
+#   Min_MemWindow: 0.5
+#   Reset_Voltage_Step: 0.1
+#   ICompSet: 0.001
+#   ICompReset: 0.1
+#   ICompRead: 0.1
+#   SaveData: True
+# Program:
+#   min_gtarget: 0.0007
+#   max_gtarget: 0.0016
+#   num_level: 10
+#   num: 10
+#   num_reads: 10
+#   v_rd: 0.1
+#   v_prg: 0.7
+#   v_rst: -0.6
+#   v_prg_max: 10
+#   v_countmax: 1000
+#   v_count: 0
+#   goffset: 1e-05
+#   ProgramTargetOffset: 1e-05
+#   read_waveform: ReRam_Read_Evan
+#   program_waveform: ReRam_Program_Evan
+#   RTN_waveform: Retention_10Min
+# Retention:
+#   SMU_Pair: [1, 2]
+#   ReadVoltage: 0.1
+#   ReadCompliance: 0.1
+#   Interval: 0.01
+#   Duration: 180
+#   SampleRate: 2
+#   SaveData: True
+# ILOVEDATA:
+#   v_start: 0.5
+#   v_max: 3
+#   v_step: 1
+#   pulses_per_voltage: 100
+#   derivative_interval: 10
+#   v_rd: 0.1
+#   ranging_rd: 6002
+#   read_waveform: ReRam_Read_Evan
+#   program_waveform: ReRam_Program_Evan
+Set Conductance,Reset Conductance
+1.3150000000e-03,6.5190000000e-04
+1.3314000000e-03,7.8692000000e-04
