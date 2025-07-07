@@ -42,7 +42,7 @@ CHANNEL_MAP = {
 B1500_CONFIG = {
     "A": {"gpib_address": 17, "smu_channels": [301, 401, 501, 601], "wgfmu_channels": [201, 202]},
     "Old": {"gpib_address": 17, "smu_channels": [101, 201, 301, 401], "wgfmu_channels": [103, 104]}, #Change
-    "C": {"gpib_address": 19, "smu_channels": [303, 403, 503, 603], "wgfmu_channels": [105, 106]}, #Change 
+    "MTW": {"gpib_address": 17, "smu_channels": [201, 301, 401, 501], "wgfmu_channels": [101, 102]}, #Change 
     "D": {"gpib_address": 20, "smu_channels": [304, 404, 504, 604], "wgfmu_channels": [107, 108]}, #Change
 }
 
