@@ -89,7 +89,8 @@ class B1500:
         # self.connection = "Connection" # THIS IS JUST FOR A TEST PLEASE CHANGE THIS FOR THE RELEASE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         # Initialize SMU and WGFMU objects
-        
+
+        self.connection.write("*rst; status:preset; *cls")
         self.smu = SMU(self.connection, self.smus)
         self.wgfmu = WGFMU(self.connection, self.wgfmus, self.gpib_address)
 
@@ -141,9 +142,10 @@ class B1500:
         connection = self.resource_manager.open_resource(gpib_str)
         connection.read_termination = "\r\n"  # Sets the character that indicates the end of a read
         connection.write_termination = "\r\n"  # Optional: sets the character appended to a write
-
+        
         ID = connection.query("*IDN?")
         print(f"Connected to {ID} at {self.gpib_address}")
+        # self.connection.write("*rst; status:preset; *cls")
         return connection
 
     def _get_final_params(defaults: Dict[str, Any],
@@ -242,7 +244,7 @@ class B1500:
             mapped_channel = channel_lookup.get(channel_number, None)
 
             if not mapped_channel:
-                print(f"❌ Unrecognized Channel Identifier: {channel_identifier} (Skipping entry)")
+                # print(f"❌ Unrecognized Channel Identifier: {channel_identifier} (Skipping entry)")
                 continue
 
             # Column naming: e.g., SMU1_Voltage, WGFMU1_Current

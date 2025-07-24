@@ -1,0 +1,114 @@
+# Saved on 2025-07-12T19:56:58.243336
+# Name: Shreenidhi
+# Sample_ID: Batch5_Sample5_F3_TE44
+# Waveform Format: Reram
+# Waveform: ReRam_Program_Evan
+# VDD WGFMU: 1
+# VSS WGFMU: 2
+# trd: 0.0001
+# pts_per_meas: 1
+# Short_Check_Test:
+#   SMU_Pair: [1, 2]
+#   Max_Resistance: 200
+#   Max_Voltage: 0.1
+#   IComp: 0.1
+#   Dynamic_Check: True
+#   D_StartV: 0.1
+#   D_Step: 1
+#   D_Wait: 10
+#   SaveData: True
+# Form_Test:
+#   SMU_Pair: [1, 2]
+#   Max_Resistance: 10000
+#   Max_Voltage: 7
+#   IComp: 0.001
+#   Dynamic_Check: True
+#   D_StartV: 0.7
+#   D_Step: 0.1
+#   D_Wait: 2
+#   Reset_Voltage: 0.1
+#   Reset_Compliance: 0.01
+#   SaveData: True
+# Switch_Test:
+#   SMU_Pair: [1, 2]
+#   num_loops: 5
+#   Read_Voltage: 0.1
+#   Pos_Voltage: 1.5
+#   Neg_Voltage: -1.5
+#   Min_MemWindow: 0.5
+#   Reset_Voltage_Step: 0.1
+#   ICompSet: 0.001
+#   ICompReset: 0.1
+#   ICompRead: 0.1
+#   SaveData: True
+# Program:
+#   min_gtarget: 0.0008
+#   max_gtarget: 0.0008
+#   num_level: 1
+#   num: 10
+#   num_reads: 10
+#   v_rd: 0.1
+#   v_prg: 2
+#   v_rst: -3
+#   v_prg_max: 10
+#   v_countmax: 1000
+#   v_count: 0
+#   goffset: 5e-06
+#   ProgramTargetOffset: 5e-06
+#   read_waveform: ReRam_Read_Evan
+#   program_waveform: ReRam_Program_Evan
+#   RTN_waveform: Retention_10Min
+# SmartProgram:
+#   min_gtarget: 0.0004
+#   max_gtarget: 0.0013
+#   num_level: 10
+#   num: 20
+#   num_reads: 10
+#   v_rd: 0.1
+#   v_prg: 0.7
+#   v_rst: -0.7
+#   v_prg_max: 5
+#   v_countmax: 1000
+#   v_count: 0
+#   goffset: 1e-05
+#   ProgramTargetOffset: 1e-05
+#   read_waveform: ReRam_Read_Evan
+#   program_waveform: ReRam_Program_Evan
+#   RTN_waveform: ReRam_RTN_Evan
+#   boundary_super_coarse: 0.0001
+#   boundary_coarse: 5e-05
+#   boundary_fine: 5e-05
+#   boundary_ultra_fine: 5e-07
+#   super_coarse_step: 0.0001
+#   coarse_step: 2.5e-05
+#   fine_step: 2.5e-05
+#   ultra_fine_step: 5e-07
+#   ultra_ultra_fine_step: 5e-07
+#   use_super_coarse: True
+#   use_fine: True
+#   use_ultra_fine: True
+#   use_ultra_ultra_fine: True
+# Retention:
+#   SMU_Pair: [1, 2]
+#   ReadVoltage: 0.1
+#   ReadCompliance: 0.1
+#   Interval: 0.01
+#   Duration: 180
+#   SampleRate: 2
+#   SaveData: True
+# ILOVEDATA:
+#   v_start: 0.5
+#   v_max: 3
+#   v_step: 1
+#   pulses_per_voltage: 100
+#   derivative_interval: 10
+#   v_rd: 0.1
+#   ranging_rd: 6002
+#   read_waveform: ReRam_Read_Evan
+#   program_waveform: ReRam_Program_Evan
+Set Conductance,Reset Conductance
+9.1200000000e-04,4.1745000000e-05
+3.8444000000e-04,3.9324000000e-05
+7.1524000000e-04,4.0996000000e-05
+7.4480000000e-04,4.2414000000e-05
+4.8746000000e-04,4.1286000000e-05

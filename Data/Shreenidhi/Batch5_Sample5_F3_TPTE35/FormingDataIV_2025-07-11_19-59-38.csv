@@ -1,0 +1,156 @@
+# Saved on 2025-07-11T19:59:38.994035
+# Name: Shreenidhi
+# Sample_ID: Batch5_Sample5_F3_TPTE35
+# Waveform Format: Reram
+# Waveform: ReRam_Program_Evan
+# VDD WGFMU: 2
+# VSS WGFMU: 1
+# trd: 0.0001
+# pts_per_meas: 1
+# Short_Check_Test:
+#   SMU_Pair: [1, 2]
+#   Max_Resistance: 200
+#   Max_Voltage: 0.1
+#   IComp: 0.1
+#   Dynamic_Check: True
+#   D_StartV: 0.1
+#   D_Step: 1
+#   D_Wait: 10
+#   SaveData: True
+# Form_Test:
+#   SMU_Pair: [2, 1]
+#   Max_Resistance: 10000
+#   Max_Voltage: 7
+#   IComp: 0.001
+#   Dynamic_Check: True
+#   D_StartV: 0.7
+#   D_Step: 0.1
+#   D_Wait: 2
+#   Reset_Voltage: 0.1
+#   Reset_Compliance: 0.01
+#   SaveData: True
+# Switch_Test:
+#   SMU_Pair: [2, 1]
+#   num_loops: 2
+#   Read_Voltage: 0.1
+#   Pos_Voltage: 1
+#   Neg_Voltage: -2
+#   Min_MemWindow: 0.5
+#   Reset_Voltage_Step: 0.1
+#   ICompSet: 0.002
+#   ICompReset: 0.1
+#   ICompRead: 0.1
+#   SaveData: True
+# Program:
+#   min_gtarget: 0.0005
+#   max_gtarget: 0.0008
+#   num_level: 4
+#   num: 20
+#   num_reads: 10
+#   v_rd: 0.1
+#   v_prg: 0.6
+#   v_rst: -0.6
+#   v_prg_max: 10
+#   v_countmax: 1000
+#   v_count: 0
+#   goffset: 5e-06
+#   ProgramTargetOffset: 5e-06
+#   read_waveform: ReRam_Read_Evan
+#   program_waveform: ReRam_Program_Evan
+#   RTN_waveform: Retention_10Min
+# SmartProgram:
+#   min_gtarget: 0.0004
+#   max_gtarget: 0.0013
+#   num_level: 10
+#   num: 20
+#   num_reads: 10
+#   v_rd: 0.1
+#   v_prg: 0.7
+#   v_rst: -0.6
+#   v_prg_max: 5
+#   v_countmax: 1000
+#   v_count: 0
+#   goffset: 1e-05
+#   ProgramTargetOffset: 1e-05
+#   read_waveform: ReRam_Read_Evan
+#   program_waveform: ReRam_Program_Evan
+#   RTN_waveform: ReRam_RTN_Evan
+#   boundary_super_coarse: 0.0001
+#   boundary_coarse: 5e-05
+#   boundary_fine: 5e-05
+#   boundary_ultra_fine: 5e-07
+#   super_coarse_step: 0.0001
+#   coarse_step: 2.5e-05
+#   fine_step: 2.5e-05
+#   ultra_fine_step: 5e-07
+#   ultra_ultra_fine_step: 5e-07
+#   use_super_coarse: True
+#   use_fine: True
+#   use_ultra_fine: True
+#   use_ultra_ultra_fine: True
+# Retention:
+#   SMU_Pair: [1, 2]
+#   ReadVoltage: 0.1
+#   ReadCompliance: 0.1
+#   Interval: 0.01
+#   Duration: 180
+#   SampleRate: 2
+#   SaveData: True
+# ILOVEDATA:
+#   v_start: 0.5
+#   v_max: 3
+#   v_step: 1
+#   pulses_per_voltage: 100
+#   derivative_interval: 10
+#   v_rd: 0.1
+#   ranging_rd: 6002
+#   read_waveform: ReRam_Read_Evan
+#   program_waveform: ReRam_Program_Evan
+Voltage (V),Current (A)
+7.0000000000e-01,2.2872000000e-05
+7.0000000000e-01,2.3846000000e-05
+7.0000000000e-01,2.2206000000e-05
+7.0000000000e-01,2.1176000000e-05
+7.0000000000e-01,2.1370000000e-05
+7.0000000000e-01,2.1472000000e-05
+7.0000000000e-01,2.3482000000e-05
+7.0000000000e-01,2.2372000000e-05
+7.0000000000e-01,2.2896000000e-05
+7.0000000000e-01,2.4354000000e-05
+7.0000000000e-01,2.4416000000e-05
+7.0000000000e-01,2.4280000000e-05
+7.0000000000e-01,2.4444000000e-05
+7.0000000000e-01,2.4448000000e-05
+7.0000000000e-01,2.4444000000e-05
+7.0000000000e-01,2.4250000000e-05
+7.0000000000e-01,2.4540000000e-05
+7.0000000000e-01,2.4684000000e-05
+7.0000000000e-01,2.4572000000e-05
+7.0000000000e-01,2.4592000000e-05
+7.0000000000e-01,2.4628000000e-05
+7.0000000000e-01,2.4650000000e-05
+7.0000000000e-01,2.4064000000e-05
+7.0000000000e-01,2.4152000000e-05
+7.0000000000e-01,2.2294000000e-05
+7.0000000000e-01,2.2224000000e-05
+7.0000000000e-01,2.2110000000e-05
+7.0000000000e-01,2.2276000000e-05
+7.0000000000e-01,2.2208000000e-05
+7.0000000000e-01,2.2298000000e-05
+7.0000000000e-01,2.2138000000e-05
+7.0000000000e-01,2.2124000000e-05
+7.0000000000e-01,2.2144000000e-05
+7.0000000000e-01,2.2118000000e-05
+7.0000000000e-01,2.1968000000e-05
+7.0000000000e-01,2.2098000000e-05
+7.0000000000e-01,2.2068000000e-05
+7.0000000000e-01,2.1926000000e-05
+7.0000000000e-01,2.2016000000e-05
+7.0000000000e-01,2.2410000000e-05
+7.0000000000e-01,2.5912000000e-05
+7.0000000000e-01,2.5922000000e-05
+7.0000000000e-01,2.5802000000e-05
+7.0000000000e-01,2.6068000000e-05
+7.0000000000e-01,2.6104000000e-05
+7.0000000000e-01,2.6904000000e-05
+8.0000000000e-01,8.7178000000e-04
