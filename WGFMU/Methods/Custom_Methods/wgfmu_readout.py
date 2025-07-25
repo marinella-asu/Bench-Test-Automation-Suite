@@ -1,13 +1,15 @@
+from B1500.B1500Unified import B1500
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 import sys
+import time
 
-##---------------------------------------------
-## This file will run a readout of the WGFMU at
-## all the different current ranges
-## and save the results to a CSV file.
-##---------------------------------------------
+'''
+This file will run a readout of the WGFMU 
+at all the different current ranges for 3 secs
+then save the results to a CSV file.
+'''
 
 def wgfmu_readout(self,
                   b1500=None,
@@ -43,14 +45,16 @@ def wgfmu_readout(self,
         
         self.wg.WGFMU_clear()
         
-        all_cond = [] 
+        all_curr = [] 
         i = 0
 
-        wgfmu_ranges = [self.wgc.WGFMU_MEASURE_CURRENT_RANGE_1MA,
-                        self.wgc.WGFMU_MEASURE_CURRENT_RANGE_100UA,
-                        self.wgc.WGFMU_MEASURE_CURRENT_RANGE_10UA,
-                        self.wgc.WGFMU_MEASURE_CURRENT_RANGE_1UA,
-                        ]
+        wgfmu_ranges = {
+            "1uA"     : self.wgc.WGFMU_MEASURE_CURRENT_RANGE_1UA,
+            "10uA"    : self.wgc.WGFMU_MEASURE_CURRENT_RANGE_10UA,
+            "100uA"   : self.wgc.WGFMU_MEASURE_CURRENT_RANGE_100UA,
+            "1mA"     : self.wgc.WGFMU_MEASURE_CURRENT_RANGE_1MA
+        }
+        
         for range in wgfmu_ranges:
             
             results2 = self.rd_pulses_1terminal(
@@ -58,18 +62,18 @@ def wgfmu_readout(self,
                     num_reads=1, t_start=1e-6, t_settle=3e-6, t_read=10e-3,
                     rd_period=100e-3, meas_pts=3001, meas_interval=1e-3, meas_averaging=-1,
                     t_rise=100e-9, v_rd=v_rd, v_off=0.0,
-                    range_rd=range, ##Change to different ranges as needed
+                    range_rd=range[0], ##Change to different ranges as needed
                     offset_times=False, wgfmu_open_first=True, wgfmu_close_after=True, alternate_waveform = read_waveform)
 
             times, currents, conductances = results2
-            conductances = conductances[:-1]
+            currents = currents[:-1]
             times = times[:-1]
 
             plt.figure()
-            plt.plot(times, conductances*1e6)
+            plt.plot(times, currents)
             plt.xlabel("Time (s)")
-            plt.ylabel("Conductance (uS)")
-            plt.title(f"WGFMU Noise Readout {date_time}")
+            plt.ylabel("Current (A)")
+            plt.title(f"WGFMU Noise Readout: {range} Range")
             plt.grid(True)
             plt.show()
             plt.close()
@@ -77,18 +81,23 @@ def wgfmu_readout(self,
             if i == 0:
                 base_times = times  # Save time once
                 i = i + 1
-            all_cond.append(conductances)
+            all_curr.append(currents)
 
-        final_array_rtn= np.column_stack([base_times] + all_cond)
+        #Clear and close WGFMU connection
+        b1500.connection.write("CL")
+        b1500.wgfmu.wg.WGFMU_clear()
+        
+        final_array_rtn= np.column_stack([base_times] + all_curr)
 
-        headers = ["Time (s)"] + [f"Noise Readout {i}" for i in wgfmu_ranges]
-        b1500.save_numpy_to_csv(b1500, final_array_rtn, filename="SuccessCompleteProgramRTNOutput", headers = headers)
+        headers = ["Time (s)"] + [f"Noise Readout {range}" for range in wgfmu_ranges]
+        b1500.save_numpy_to_csv(b1500, final_array_rtn, filename=f"WGFMUReadout", headers = headers)
 
     except KeyboardInterrupt as e:
+        #Clear and close WGFMU connection
         b1500.connection.write("CL")
         b1500.wgfmu.wg.WGFMU_clear()
         if i > 0:
-            final_array_rtn= np.column_stack([base_times] + all_cond)
+            final_array_rtn= np.column_stack([base_times] + all_curr)
             
-            headers = ["Time (s)"] + [f"Noise Readout {i}" for i in wgfmu_ranges]
-            b1500.save_numpy_to_csv(b1500, final_array_rtn, filename="StoppedProgramRTNOutput", headers = headers)
+            headers = ["Time (s)"] + [f"Noise Readout {range}" for range in wgfmu_ranges]
+            b1500.save_numpy_to_csv(b1500, final_array_rtn, filename="WGFMUReadout", headers = headers)

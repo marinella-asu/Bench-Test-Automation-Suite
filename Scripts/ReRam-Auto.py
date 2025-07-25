@@ -5,8 +5,8 @@ import time
 
 # Define experiment parameters
 parameters = {
-    "Name": "Evan", #These parameters must be changed by the experimenter for better data filing and collection and determines where your data is stored and what it's name is stored as
-    "Sample_ID": "Batch5_Sample5_F5_TPTE09",
+    "Name": "Shreenidhi", #These parameters must be changed by the experimenter for better data filing and collection and determines where your data is stored and what it's name is stored as
+    "Sample_ID": "GWC331_WGFMU_noise",
 
     "Waveform Format": "Reram",  # Loads a waveform format (Used in unfinished Waveform creation GUI disregard for now)
     "Waveform": "ReRam_Program_Evan", #Set this to Load a Waveform into the Editor
@@ -129,9 +129,7 @@ parameters = {
         "ranging_rd": 6002,
         "read_waveform": "ReRam_Read_Evan",
         "program_waveform": "ReRam_Program_Evan"
-    }
-
-    
+    } 
 }
 
 # Initialize Unified B1500 (includes parameter validation)
